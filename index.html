@@ -28,7 +28,7 @@ body {
   padding-top: max(10px, env(safe-area-inset-top));
   display: flex; align-items: center; gap: 8px; flex-shrink: 0; z-index: 10;
 }
-.header .back { font-size: 20px; cursor: pointer; opacity: 0.9; line-height: 1; }
+.header .back { font-size: 20px; opacity: 0.5; line-height: 1; }
 .header .title { font-size: 16px; font-weight: 600; flex: 1; text-align: center; }
 .header .members { font-size: 12px; opacity: 0.6; }
 .header .menu { font-size: 20px; opacity: 0.9; cursor: pointer; position: relative; line-height: 1; }
@@ -326,7 +326,7 @@ body {
 <body>
 <div id="app">
   <div class="header">
-    <span class="back" onclick="restartGame()" style="cursor:pointer">‹</span>
+    <span class="back">‹</span>
     <span class="title">⚽ 2026世界杯观赛群</span>
     <span class="members">(499)</span>
     <span class="menu" id="menuBtn" onclick="toggleMenu()">
@@ -1550,33 +1550,8 @@ function animateNumber(id, target) {
 }
 
 function restartGame() {
-  gameId++; // cancel any running game
-  isPlaying = false;
-  if (choiceResolve) { choiceResolve(null); choiceResolve = null; }
-  state = {
-    username: state.username,
-    chapter: 'prologue',
-    msgIdx: 0,
-    score: 0,
-    totalPossible: 0,
-    choices: [],
-    exposure: 0,
-    chapterMsgCount: 0,
-    lastChoiceChapter: null,
-    lastChoiceMsgIdx: 0,
-    finalChoices: [],
-    finalSpoke: 0,
-    finalTotal: 0,
-    history: [],
-  };
-  chapterScore = 0;
-  finalScores = [];
-  finalSkipped = 0;
-  chat.innerHTML = '';
-  resultDiv.className = 'result-page';
-  resultDiv.innerHTML = '';
-  choicesDiv.style.display = 'none';
-  runGame();
+  stopCurrentGame();
+  setTimeout(() => runGame(), 200);
 }
 
 // ═══════════════════════════════════════
@@ -1618,29 +1593,34 @@ function closeMenu(e) {
     document.removeEventListener('click', closeMenu);
   }
 }
-function startFullGame() {
-  document.getElementById('menuDropdown').classList.remove('show');
-  document.removeEventListener('click', closeMenu);
-  gameId++; // cancel any running game
-  document.getElementById('nameOverlay').style.display = 'flex';
-}
-function startFinalTest() {
-  document.getElementById('menuDropdown').classList.remove('show');
-  document.removeEventListener('click', closeMenu);
-  const input = document.getElementById('usernameInput');
-  const name = input.value.trim() || '世界杯新人';
-  state.username = name;
-  gameId++; // cancel any running game
+function stopCurrentGame() {
+  gameId++; // invalidate all running sleep/showTyping
   isPlaying = false;
   if (choiceResolve) { choiceResolve(null); choiceResolve = null; }
-  state = { username: name, chapter: 'final_intro', msgIdx: 0, score: 0, totalPossible: 0, choices: [], exposure: 0, chapterMsgCount: 0, lastChoiceChapter: null, lastChoiceMsgIdx: 0, finalChoices: [], finalSpoke: 0, finalTotal: 0, history: [] };
-  chapterScore = 0; finalScores = []; finalSkipped = 0;
   chat.innerHTML = '';
   resultDiv.className = 'result-page';
   resultDiv.innerHTML = '';
   choicesDiv.style.display = 'none';
+  chapterScore = 0; finalScores = []; finalSkipped = 0;
+  state = { username: state.username, chapter: 'prologue', msgIdx: 0, score: 0, totalPossible: 0, choices: [], exposure: 0, chapterMsgCount: 0, lastChoiceChapter: null, lastChoiceMsgIdx: 0, finalChoices: [], finalSpoke: 0, finalTotal: 0, history: [] };
+}
+
+function startFullGame() {
+  document.getElementById('menuDropdown').classList.remove('show');
+  document.removeEventListener('click', closeMenu);
+  stopCurrentGame();
+  document.getElementById('nameOverlay').style.display = 'flex';
+}
+
+function startFinalTest() {
+  document.getElementById('menuDropdown').classList.remove('show');
+  document.removeEventListener('click', closeMenu);
+  stopCurrentGame();
+  const input = document.getElementById('usernameInput');
+  state.username = input.value.trim() || '世界杯新人';
   document.getElementById('nameOverlay').style.display = 'none';
-  setTimeout(() => jumpToFinal(), 150);
+  // Wait for any in-flight async cleanup, then start
+  setTimeout(() => jumpToFinal(), 200);
 }
 
 async function jumpToFinal() {
@@ -1658,11 +1638,12 @@ async function jumpToFinal() {
 
 function startGame() {
   const input = document.getElementById('usernameInput');
-  const name = input.value.trim() || '世界杯新人';
-  state.username = name;
+  state.username = input.value.trim() || '世界杯新人';
   document.getElementById('nameOverlay').style.display = 'none';
-  gameId++;
-  setTimeout(() => runGame(), 150);
+  // stopCurrentGame already called by startFullGame before showing overlay,
+  // but guard against edge cases
+  if (isPlaying) { stopCurrentGame(); }
+  setTimeout(() => runGame(), 200);
 }
 
 // Allow pressing Enter to start
