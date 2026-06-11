@@ -1097,9 +1097,18 @@ function escapeHtml(text) {
 function scrollBottom() {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      chat.scrollTop = chat.scrollHeight;
+      // Only auto-scroll if user is near the bottom (within 120px)
+      const nearBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 120;
+      if (nearBottom) {
+        chat.scrollTop = chat.scrollHeight;
+      }
     });
   });
+}
+
+// User taps the "new messages" indicator → scroll to bottom
+function scrollToLatest() {
+  chat.scrollTop = chat.scrollHeight;
 }
 
 // ═══════════════════════════════════════
