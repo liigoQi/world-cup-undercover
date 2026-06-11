@@ -1555,7 +1555,7 @@ function animateNumber(id, target) {
 
 function restartGame() {
   stopCurrentGame();
-  setTimeout(() => runGame(), 200);
+  whenReady(() => runGame());
 }
 
 // ═══════════════════════════════════════
@@ -1599,7 +1599,6 @@ function closeMenu(e) {
 }
 function stopCurrentGame() {
   gameId++; // invalidate all running sleep/showTyping
-  isPlaying = false;
   if (choiceResolve) { choiceResolve(null); choiceResolve = null; }
   chat.innerHTML = '';
   resultDiv.className = 'result-page';
@@ -1607,6 +1606,17 @@ function stopCurrentGame() {
   choicesDiv.style.display = 'none';
   chapterScore = 0; finalScores = []; finalSkipped = 0;
   state = { username: state.username, chapter: 'prologue', msgIdx: 0, score: 0, totalPossible: 0, choices: [], exposure: 0, chapterMsgCount: 0, lastChoiceChapter: null, lastChoiceMsgIdx: 0, finalChoices: [], finalSpoke: 0, finalTotal: 0, history: [] };
+}
+
+// Wait for any running game to fully stop, then start a new one
+function whenReady(fn) {
+  if (!isPlaying) { fn(); return; }
+  // Old game is still cleaning up — poll until done
+  const poll = setInterval(() => {
+    if (!isPlaying) { clearInterval(poll); fn(); }
+  }, 50);
+  // Safety timeout
+  setTimeout(() => { clearInterval(poll); isPlaying = false; fn(); }, 3000);
 }
 
 function startFullGame() {
@@ -1623,8 +1633,7 @@ function startFinalTest() {
   const input = document.getElementById('usernameInput');
   state.username = input.value.trim() || '世界杯新人';
   document.getElementById('nameOverlay').style.display = 'none';
-  // Wait for any in-flight async cleanup, then start
-  setTimeout(() => jumpToFinal(), 200);
+  whenReady(() => jumpToFinal());
 }
 
 async function jumpToFinal() {
@@ -1644,10 +1653,7 @@ function startGame() {
   const input = document.getElementById('usernameInput');
   state.username = input.value.trim() || '世界杯新人';
   document.getElementById('nameOverlay').style.display = 'none';
-  // stopCurrentGame already called by startFullGame before showing overlay,
-  // but guard against edge cases
-  if (isPlaying) { stopCurrentGame(); }
-  setTimeout(() => runGame(), 200);
+  whenReady(() => runGame());
 }
 
 // Allow pressing Enter to start
