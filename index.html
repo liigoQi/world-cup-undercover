@@ -1134,19 +1134,21 @@ async function playChapter(chapterName) {
       }
       addMessage(msg.s, msg.m);
       // Varied delay: short messages faster, random variation, occasional longer pauses
-      let delay = 400 + msg.m.length * 20 + Math.random() * 600;
-      if (Math.random() < 0.15) delay += 800; // occasional longer pause
+      let delay = 600 + msg.m.length * 25 + Math.random() * 800;
+      if (Math.random() < 0.2) delay += 1200; // occasional longer pause
       await sleep(delay);
     } else if (msg.t === 'sys') {
       if (msg.c.startsWith('━━━') || msg.c.startsWith('──')) {
         const clean = msg.c.replace(/^[━─]{2,}\s*/, '').replace(/\s*[━─]{2,}$/, '');
         addChapterTitle(clean);
+        await sleep(2000);
       } else if (msg.c.includes('\n') && msg.c.length > 30) {
         addSysBox(msg.c);
+        await sleep(1500);
       } else {
         addSysMsg(msg.c);
+        await sleep(800);
       }
-      await sleep(500);
     } else if (msg.t === 'skill') {
       addSkillCard(msg.c);
       await sleep(800);
@@ -1159,7 +1161,7 @@ async function playChapter(chapterName) {
       if (result === null || gameId !== myGameId) { isPlaying = false; return; }
       // Show user's message, then pause before group responds
       addSelfMessage(result);
-      await sleep(800 + Math.random() * 1000);
+      await sleep(1000 + Math.random() * 1500);
       state.choices.push({ chapter: chapterName, choice: result });
       if (result && msg.opts) {
         const opt = msg.opts.find(o => o.label === result);
@@ -1187,7 +1189,7 @@ async function playChapter(chapterName) {
           finalScores.push(opt.score);
           state.score += opt.score;
           addSelfMessage(result);
-          await sleep(800 + Math.random() * 1000);
+          await sleep(1000 + Math.random() * 1500);
         }
       }
     }
@@ -1203,17 +1205,19 @@ async function playBranch(branchName) {
     if (gameId !== myGameId) return;
     if (msg.t === 'msg') {
       addMessage(msg.s, msg.m);
-      await sleep(300 + msg.m.length * 20 + Math.random() * 500);
+      await sleep(500 + msg.m.length * 25 + Math.random() * 600);
     } else if (msg.t === 'sys') {
       if (msg.c.startsWith('━━━') || msg.c.startsWith('──')) {
         const clean = msg.c.replace(/^[━─]{2,}\s*/, '').replace(/\s*[━─]{2,}$/, '');
         addChapterTitle(clean);
+        await sleep(2000);
       } else if (msg.c.includes('\n') && msg.c.length > 30) {
         addSysBox(msg.c);
+        await sleep(1500);
       } else {
         addSysMsg(msg.c);
+        await sleep(800);
       }
-      await sleep(500);
     } else if (msg.t === 'skill') {
       addSkillCard(msg.c);
       await sleep(800);
@@ -1224,7 +1228,7 @@ async function playBranch(branchName) {
       const result = await showChoices(msg);
       if (result === null) return;
       addSelfMessage(result);
-      await sleep(800 + Math.random() * 1000);
+      await sleep(1000 + Math.random() * 1500);
       state.choices.push({ chapter: branchName, choice: result });
       if (result && msg.opts) {
         const opt = msg.opts.find(o => o.label === result);
