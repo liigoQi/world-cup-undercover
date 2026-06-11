@@ -1619,10 +1619,8 @@ function whenReady(fn) {
 }
 
 function startFullGame() {
-  document.getElementById('menuDropdown').classList.remove('show');
-  document.removeEventListener('click', closeMenu);
-  stopCurrentGame();
-  document.getElementById('nameOverlay').style.display = 'flex';
+  // Full page reload guarantees a completely clean state from the beginning
+  window.location.reload();
 }
 
 function startFinalTest() {
