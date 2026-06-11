@@ -1624,10 +1624,9 @@ function startFullGame() {
 }
 
 function startFinalTest() {
-  // Save username then reload with hash to jump directly to test
   const name = document.getElementById('usernameInput').value.trim() || '世界杯新人';
-  try { sessionStorage.setItem('wc_username', name); } catch(e) {}
-  window.location.href = window.location.pathname + '#test';
+  try { sessionStorage.setItem('wc_username', name); sessionStorage.setItem('wc_mode', 'test'); } catch(e) {}
+  window.location.reload();
 }
 
 async function jumpToFinal() {
@@ -1655,14 +1654,18 @@ document.getElementById('usernameInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') startGame();
 });
 
-// ── URL hash routing: #test → skip overlay, jump to final test ──
-if (window.location.hash === '#test') {
-  try { state.username = sessionStorage.getItem('wc_username') || '世界杯新人'; } catch(e) {}
-  document.getElementById('nameOverlay').style.display = 'none';
-  jumpToFinal();
-  // Clear hash so refresh goes back to normal
-  history.replaceState(null, '', window.location.pathname);
-}
+// ── sessionStorage routing: wc_mode=test → skip overlay, jump to final test ──
+(function() {
+  try {
+    if (sessionStorage.getItem('wc_mode') === 'test') {
+      sessionStorage.removeItem('wc_mode');
+      state.username = sessionStorage.getItem('wc_username') || '世界杯新人';
+      document.getElementById('nameOverlay').style.display = 'none';
+      jumpToFinal();
+      return;
+    }
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
