@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⚽ 世界杯观赛群卧底计划</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  background: #111; display: flex; justify-content: center; align-items: center;
+}
+#app {
+  width: 100%; max-width: 480px; height: 100vh; max-height: 900px;
+  display: flex; flex-direction: column; background: #ededed;
+  position: relative; overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  background: #2e2e2e; color: #fff; padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0; z-index: 10;
+}
+.header .back { font-size: 18px; cursor: pointer; opacity: 0.8; }
+.header .title { font-size: 16px; font-weight: 600; flex: 1; text-align: center; }
+.header .members { font-size: 13px; opacity: 0.6; }
+.header .menu { font-size: 18px; opacity: 0.8; }
+
+/* ── Chat area ── */
+.chat {
+  flex: 1; overflow-y: auto; padding: 10px 12px;
+  -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
+}
+.chat::-webkit-scrollbar { width: 0; }
+
+/* ── System message ── */
+.sys-msg {
+  text-align: center; margin: 12px 0; font-size: 12px; color: #999;
+  animation: fadeIn 0.3s ease;
+}
+.sys-msg.sys-box {
+  background: #fff; border-radius: 8px; padding: 16px; margin: 16px 8px;
+  color: #333; font-size: 13px; line-height: 1.8; text-align: left;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  white-space: pre-line;
+}
+.sys-msg.chapter-title {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #ffd700; border-radius: 10px; padding: 12px 18px; margin: 16px 8px;
+  font-size: 15px; font-weight: 600; text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: popIn 0.4s ease;
+}
+
+/* ── Message row ── */
+.msg-row {
+  display: flex; margin: 6px 0; animation: msgIn 0.25s ease; align-items: flex-start;
+}
+.msg-row.self { flex-direction: row-reverse; }
+.msg-row .avatar {
+  width: 38px; height: 38px; border-radius: 4px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: #fff; margin: 0 8px;
+  overflow: hidden;
+}
+.msg-row .avatar img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.msg-row.self .avatar { display: none; }
+.msg-body { max-width: 72%; }
+.msg-row .nickname { font-size: 11px; color: #888; margin-bottom: 2px; padding-left: 2px; }
+.msg-row.self .nickname { text-align: right; padding-right: 2px; }
+.msg-row .bubble {
+  display: inline-block; padding: 9px 13px; font-size: 15px; line-height: 1.55;
+  border-radius: 4px; position: relative; word-break: break-word; max-width: 100%;
+}
+.msg-row:not(.self) .bubble {
+  background: #fff; color: #333;
+  border-top-left-radius: 2px;
+}
+.msg-row:not(.self) .bubble::before {
+  content: ''; position: absolute; left: -5px; top: 10px;
+  border: 5px solid transparent; border-right-color: #fff; border-left: 0;
+}
+.msg-row.self .bubble {
+  background: #95ec69; color: #000;
+  border-top-right-radius: 2px;
+}
+.msg-row.self .bubble::after {
+  content: ''; position: absolute; right: -5px; top: 10px;
+  border: 5px solid transparent; border-left-color: #95ec69; border-right: 0;
+}
+
+/* ── Skill card ── */
+.skill-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #ffd700; border-radius: 10px; padding: 14px 18px; margin: 12px 8px;
+  font-size: 14px; text-align: center; animation: popIn 0.4s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.skill-card .check { font-size: 18px; margin-bottom: 4px; }
+
+/* ── Typing indicator ── */
+.typing {
+  display: flex; align-items: flex-start; margin: 6px 0; animation: msgIn 0.25s ease;
+}
+.typing .avatar {
+  width: 38px; height: 38px; border-radius: 4px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: #fff; margin: 0 8px;
+  overflow: hidden;
+}
+.typing .avatar img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.typing .msg-body { max-width: 72%; }
+.typing .nickname { font-size: 11px; color: #888; margin-bottom: 2px; padding-left: 2px; }
+.typing .dots {
+  padding: 9px 13px; background: #fff; color: #999; border-radius: 4px;
+  border-top-left-radius: 2px; font-size: 14px; position: relative;
+}
+.typing .dots::before {
+  content: ''; position: absolute; left: -5px; top: 10px;
+  border: 5px solid transparent; border-right-color: #fff; border-left: 0;
+}
+.typing .dots span {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #bbb;
+  margin: 0 1px; animation: bounce 0.6s infinite alternate; vertical-align: middle;
+}
+.typing .dots span:nth-child(2) { animation-delay: 0.15s; }
+.typing .dots span:nth-child(3) { animation-delay: 0.3s; }
+
+/* ── Choice area ── */
+.choice-area {
+  background: rgba(247,247,247,0.97); border-top: 1px solid #e0e0e0;
+  padding: 10px 14px calc(14px + env(safe-area-inset-bottom));
+  flex-shrink: 0; z-index: 10; max-height: 45vh; overflow-y: auto;
+}
+.choice-label {
+  font-size: 12px; color: #999; margin-bottom: 8px; text-align: center;
+}
+.choice-btn {
+  display: block; width: 100%; padding: 11px 14px; margin: 4px 0;
+  font-size: 14px; border: 1px solid #d0d0d0; border-radius: 6px;
+  background: #fff; color: #333; text-align: left; cursor: pointer;
+  transition: background 0.15s; -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+.choice-btn:active { background: #e8e8e8; }
+.choice-btn.primary {
+  background: #07c160; color: #fff; border-color: #07c160; text-align: center;
+  font-weight: 500;
+}
+.choice-btn.primary:active { background: #06ad56; }
+.choice-btn.danger { color: #e04343; text-align: center; font-size: 13px; }
+
+/* ── Username input overlay ── */
+.overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.overlay .card {
+  background: #fff; border-radius: 12px; padding: 24px; width: 280px; text-align: center;
+}
+.overlay .card h3 { font-size: 17px; margin-bottom: 16px; }
+.overlay .card input {
+  width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #ddd;
+  border-radius: 6px; text-align: center; margin-bottom: 12px; outline: none;
+}
+.overlay .card input:focus { border-color: #07c160; }
+.overlay .card button {
+  width: 100%; padding: 10px; font-size: 15px; background: #07c160; color: #fff;
+  border: none; border-radius: 6px; font-weight: 500; cursor: pointer;
+}
+
+/* ── Mini-game ── */
+.minigame {
+  background: #fff; border-radius: 10px; padding: 16px; margin: 12px 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1); user-select: none;
+}
+.minigame .mg-title { text-align: center; font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #333; }
+.minigame .mg-sub { text-align: center; font-size: 12px; color: #999; margin-bottom: 10px; }
+.minigame .mg-step { text-align: center; font-size: 11px; color: #bbb; margin-bottom: 6px; }
+/* ── Field: side-view, attack left→right ── */
+.minigame .field {
+  position: relative; width: 100%; height: 160px;
+  background: linear-gradient(to bottom, #5aad5a 0%, #4a9e4a 50%, #5aad5a 100%);
+  border-radius: 8px; overflow: hidden; border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.10);
+}
+.minigame .field .grass-stripe {
+  position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.2);
+}
+/* Offside line: yellow dashed vertical */
+.minigame .field .line-yellow {
+  position: absolute; top: 8%; bottom: 8%; width: 3px;
+  background: repeating-linear-gradient(to bottom, #ff0 0px, #ff0 8px, transparent 8px, transparent 14px);
+  z-index: 5; transition: left 0.4s ease;
+}
+/* Player circle */
+.minigame .field .p {
+  position: absolute; width: 38px; height: 38px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.9); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; z-index: 3;
+  transform: translate(-50%, -50%); color: #fff; white-space: nowrap;
+}
+.minigame .field .p.def { background: #e74c3c; }  /* defender */
+.minigame .field .p.atk { background: #3498db; }  /* attacker */
+.minigame .field .p.gk  { background: #e67e22; }  /* goalkeeper */
+.minigame .field .p.pas { background: #2ecc71; }  /* passer */
+/* Ball */
+.minigame .field .ball {
+  position: absolute; width: 13px; height: 13px; background: #fff;
+  border-radius: 50%; border: 2px solid #333; z-index: 4;
+  transform: translate(-50%, -50%);
+}
+/* Labels BELOW field, never overlap */
+.minigame .field-labels {
+  display: flex; justify-content: space-around; padding: 4px 6px 0;
+  font-size: 11px; color: #888;
+}
+.minigame .field-labels span { text-align: center; }
+/* ── Buttons ── */
+.minigame .mg-buttons { display: flex; gap: 10px; margin-top: 10px; }
+.minigame .mg-btn {
+  flex: 1; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 600;
+  border: none; cursor: pointer; -webkit-tap-highlight-color: transparent; min-height: 44px;
+}
+.minigame .mg-btn.red { background: #e74c3c; color: #fff; }
+.minigame .mg-btn.red:active { background: #c0392b; }
+.minigame .mg-btn.green { background: #27ae60; color: #fff; }
+.minigame .mg-btn.green:active { background: #1e8449; }
+.minigame .mg-btn.blue { background: #3498db; color: #fff; }
+.minigame .mg-btn.blue:active { background: #2980b9; }
+.minigame .mg-btn.gold { background: #ffd700; color: #333; font-size: 16px; }
+.minigame .mg-btn.gold:active { background: #f0c800; }
+/* ── Feedback ── */
+.minigame .mg-feedback {
+  text-align: center; padding: 10px; border-radius: 8px; margin-top: 10px;
+  font-size: 14px; font-weight: 600; animation: popIn 0.3s ease;
+}
+.minigame .mg-feedback.wrong { background: #ffe0e0; color: #c0392b; }
+.minigame .mg-feedback.right { background: #e0ffe0; color: #27ae60; }
+/* ── Canteen card ── */
+.minigame .canteen {
+  background: #fdf6e3; border-radius: 8px; padding: 14px; margin-top: 10px;
+  line-height: 1.9; font-size: 14px; color: #333;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ── Result page ── */
+.result-page {
+  position: absolute; inset: 0; background: #f5f5f5; z-index: 50;
+  overflow-y: auto; padding: 20px 16px; display: none; flex-direction: column;
+}
+.result-page.show { display: flex; }
+.result-page .r-header {
+  text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 700; color: #333;
+}
+.result-page .r-bar-outer {
+  background: #e0e0e0; border-radius: 10px; height: 22px; overflow: hidden; margin: 8px 0;
+}
+.result-page .r-bar-inner {
+  height: 100%; background: linear-gradient(90deg, #f39c12, #e74c3c, #9b59b6);
+  border-radius: 10px; transition: width 1s ease; width: 0%;
+}
+.result-page .r-percent { text-align: center; font-size: 32px; font-weight: 700; color: #333; margin: 4px 0; }
+.result-page .r-badge {
+  text-align: center; padding: 14px; background: #1a1a2e; color: #ffd700;
+  border-radius: 10px; font-size: 16px; font-weight: 600; margin: 12px 0;
+}
+.result-page .r-desc { font-size: 13px; color: #666; line-height: 1.8; margin: 8px 0; }
+.result-page .r-skills { font-size: 13px; color: #333; margin: 8px 0; }
+.result-page .r-eval {
+  font-size: 12px; color: #999; margin: 8px 0; padding: 10px; background: #fff;
+  border-radius: 6px; line-height: 1.8;
+}
+.result-page .r-btn {
+  display: block; width: 100%; padding: 12px; margin: 6px 0;
+  background: #07c160; color: #fff; border: none; border-radius: 6px;
+  font-size: 15px; font-weight: 500; cursor: pointer; text-align: center;
+}
+
+/* ── Header menu ── */
+.header .menu { font-size: 18px; opacity: 0.8; cursor: pointer; position: relative; }
+.menu-dropdown {
+  position: absolute; top: 100%; right: 0; background: #fff; border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2); min-width: 140px; z-index: 200;
+  display: none; overflow: hidden;
+}
+.menu-dropdown.show { display: block; }
+.menu-dropdown button {
+  display: block; width: 100%; padding: 12px 16px; font-size: 14px; border: none;
+  background: #fff; color: #333; text-align: left; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-dropdown button:active { background: #f0f0f0; }
+.menu-dropdown button + button { border-top: 1px solid #f0f0f0; }
+
+/* ── Animations ── */
+@keyframes msgIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+
+/* ── Recall hint ── */
+.recall-hint {
+  text-align: center; font-size: 11px; color: #888; margin: 6px 0;
+  animation: fadeIn 0.3s ease;
+}
+.recall-hint span { color: #576b95; text-decoration: underline; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <span class="back" onclick="restartGame()" style="cursor:pointer">‹</span>
+    <span class="title">⚽ 2026世界杯观赛群</span>
+    <span class="members">(499)</span>
+    <span class="menu" id="menuBtn" onclick="toggleMenu()">
+      ⋯
+      <div class="menu-dropdown" id="menuDropdown">
+        <button onclick="startFullGame()">📖 教学部分</button>
+        <button onclick="startFinalTest()">⚡ 测试部分</button>
+      </div>
+    </span>
+  </div>
+  <div class="chat" id="chat"></div>
+  <div class="choice-area" id="choices" style="display:none"></div>
+  <div class="result-page" id="result"></div>
+  <!-- Username overlay -->
+  <div class="overlay" id="nameOverlay">
+    <div class="card">
+      <h3>⚽ 进入观赛群</h3>
+      <p style="font-size:13px;color:#888;margin-bottom:12px">设置你的群昵称</p>
+      <input type="text" id="usernameInput" placeholder="输入昵称" maxlength="12" value="世界杯新人">
+      <button onclick="startGame()">📖 完整教学</button>
+      <button onclick="startFinalTest()" style="background:#333;margin-top:6px;">⚡ 直接测试</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CHARACTERS
+// ═══════════════════════════════════════
+const CHARS = {
+  dongge:      { name:'战术级理解',   img:'头像/战术级理解.jpg', color:'#c0392b', init:'战' },
+  yunqiumi:    { name:'皇马名宿梅西', img:'头像/皇马名宿梅西.jpg', color:'#2980b9', init:'皇' },
+  gengwang:    { name:'踢球是不可能踢球的', img:'头像/踢球是不可能踢球的.jpg', color:'#8e44ad', init:'踢' },
+  yuce:        { name:'剧本而已',     img:'头像/剧本而已.jpg', color:'#d35400', init:'剧' },
+  aoaye:       { name:'绝不熬夜',     img:'头像/绝不熬夜.jpg', color:'#2c3e50', init:'绝' },
+  zhanshu:     { name:'这战术我看不懂', img:'头像/这战术我看不懂.jpg', color:'#16a085', init:'这' },
+  dugou:       { name:'天台一位',     img:'头像/天台一位.jpg', color:'#7f8c8d', init:'天' },
+  jijin:       { name:'进球回放bot',  img:'头像/进球回放bot.jpg', color:'#e67e22', init:'进' },
+  yanzhi:      { name:'全员鉴赏中',   img:'头像/全员鉴赏中.jpg', color:'#e91e63', init:'全' },
+  shuju:       { name:'xG高达0.03',   img:'头像/xG高达0.03.jpg', color:'#3498db', init:'x' },
+  shechu:      { name:'别剧透',       img:'头像/别剧透.jpg', color:'#546e7a', init:'别' },
+  tuitiutui:   { name:'诸神黄昏养老院球迷', img:'头像/诸神黄昏养老院球迷.jpg', color:'#6d4c41', init:'诸' },
+};
+// ═══════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════
+let state = {
+  username: '世界杯新人',
+  chapter: 'prologue',
+  msgIdx: 0,
+  score: 0,
+  totalPossible: 0,
+  choices: [],       // all user choices for easter egg detection
+  exposure: 0,
+  chapterMsgCount: 0,
+  lastChoiceChapter: null,
+  lastChoiceMsgIdx: 0,
+  finalChoices: [],   // choices made in final chapter
+  finalSpoke: 0,
+  finalTotal: 0,
+  history: [],        // message history for display
+};
+
+// ═══════════════════════════════════════
+// DATA: All chapter messages
+// ═══════════════════════════════════════
+const script = {
+
+// ── PROLOGUE ──
+prologue: [
+  { t:'sys', c:'你被 拉 进了 ⚽ 2026世界杯观赛群（499）' },
+  { t:'msg', s:'dongge', m:'今晚这场很关键，关系到E组出线形势' },
+  { t:'msg', s:'dongge', m:'我说了三遍都没人听' },
+  { t:'msg', s:'dongge', m:'再讲一次：如果这场打平，下一场必须赢而且净胜球要+2，否则就要看隔壁脸色' },
+  { t:'msg', s:'yuce', m:'我押3:1' },
+  { t:'msg', s:'yuce', m:'昨晚梦见比分了，信我' },
+  { t:'msg', s:'dugou', m:'3:1？那我反买一手' },
+  { t:'msg', s:'dugou', m:'剧本哥的梦，反向操作，别墅靠大海' },
+  { t:'msg', s:'yunqiumi', m:'梅西还踢吗' },
+  { t:'msg', s:'yunqiumi', m:'他不是退国家队了吗' },
+  { t:'msg', s:'gengwang', m:'梅西，阿根廷那个？' },
+  { t:'msg', s:'gengwang', m:'先告诉我阿根廷在哪个洲' },
+  { t:'msg', s:'aoaye', m:'几点开始' },
+  { t:'msg', s:'aoaye', m:'别废话，就问几点' },
+  { t:'msg', s:'tuitiutui', m:'现在这届不行' },
+  { t:'msg', s:'tuitiutui', m:'98年巴乔罚丢点球那个背影，你们看过没' },
+  { t:'msg', s:'tuitiutui', m:'那才叫世界杯' },
+  { t:'msg', s:'zhanshu', m:'懂哥说得对，不过今晚大概率4-2-3-1双后腰' },
+  { t:'msg', s:'zhanshu', m:'右边路压不上去的话，得变阵3-4-3菱形' },
+  { t:'msg', s:'gengwang', m:'战术哥你等会儿' },
+  { t:'msg', s:'gengwang', m:'比赛还没开始呢' },
+  { t:'msg', s:'yanzhi', m:'不管什么阵型，我就问一句' },
+  { t:'msg', s:'yanzhi', m:'首发帅不帅' },
+  { t:'msg', s:'zhanshu', m:'？？？' },
+  { t:'choice', id:'accept', prompt:'检测到你是世界杯新人。\n\n是否开启：\n\n  ⚽ 观赛群卧底计划\n\n  在群聊中学会世界杯\n  获得你的"懂球身份"', opts:[
+    { label:'接受任务', branch:'accept_mission' },
+    { label:'我再看看', branch:'linger' },
+  ]},
+],
+accept_mission: [
+  { t:'sys', c:'⚽ 观赛群卧底计划 启动！' },
+],
+linger: [
+  { t:'msg', s:'gengwang', m:'新人怎么不说话？' },
+  { t:'msg', s:'yunqiumi', m:'可能在忙吧' },
+  { t:'choice', id:'accept2', prompt:'要接受观赛群卧底计划吗？', opts:[
+    { label:'接受任务', branch:'accept_mission' },
+    { label:'继续看群聊', branch:'linger2' },
+  ]},
+],
+linger2: [
+  { t:'msg', s:'gengwang', m:'家人你是不是不好意思' },
+  { t:'msg', s:'aoaye', m:'别磨叽了' },
+  { t:'choice', id:'accept3', prompt:'最后一次机会！', opts:[
+    { label:'接受任务！', branch:'accept_mission' },
+  ]},
+],
+
+// ── CHAPTER 1: 世界杯到底是什么 ──
+ch1: [
+  { t:'sys', c:'━━━ 第一章：世界杯到底是什么 ━━━' },
+  { t:'msg', s:'yunqiumi', m:'兄弟们我问个事' },
+  { t:'msg', s:'yunqiumi', m:'世界杯和欧冠到底有什么区别' },
+  { t:'msg', s:'yunqiumi', m:'不都是踢球吗' },
+  { t:'msg', s:'yuce', m:'欧冠年年有，世界杯四年一次' },
+  { t:'msg', s:'yuce', m:'你高考都没世界杯稀有' },
+  { t:'msg', s:'tuitiutui', m:'四年一次啊' },
+  { t:'msg', s:'tuitiutui', m:'我这一生也就看了十几届' },
+  { t:'msg', s:'tuitiutui', m:'从罗马里奥看到现在，世界杯比结婚纪念日还准时' },
+  { t:'msg', s:'shuju', m:'来，上数据' },
+  { t:'msg', s:'shuju', m:'欧冠决赛全球观众约4亿' },
+  { t:'msg', s:'shuju', m:'世界杯决赛全球观众约15亿' },
+  { t:'msg', s:'shuju', m:'3.75个欧冠叠在一起' },
+  { t:'msg', s:'dugou', m:'数据帝别叠了' },
+  { t:'msg', s:'dugou', m:'反正我世界杯输的是欧冠的3.75倍' },
+  { t:'msg', s:'shechu', m:'我们老板不知道世界杯是什么' },
+  { t:'msg', s:'shechu', m:'但他知道欧冠决赛第二天要开会' },
+  { t:'msg', s:'shechu', m:'这就是区别' },
+  { t:'msg', s:'zhanshu', m:'从纯竞技角度，世界杯是国家队，欧冠是俱乐部' },
+  { t:'msg', s:'zhanshu', m:'俱乐部队友天天训练有默契，国家队临时集训两周就要上场' },
+  { t:'msg', s:'zhanshu', m:'所以世界杯的战术含量其实……' },
+  { t:'msg', s:'gengwang', m:'就这么说吧' },
+  { t:'msg', s:'gengwang', m:'一个代表你上班的公司，一个代表你的老家' },
+  { t:'msg', s:'gengwang', m:'你细品' },
+  { t:'choice', id:'ch1', prompt:'你：', opts:[
+    { label:'A 没区别啊，不都是踢球嘛', branch:'ch1_A', score:0 },
+    { label:'B 一个是国家队比赛，一个是俱乐部比赛', branch:'ch1_B', score:5 },
+    { label:'C 欧冠更厉害吧，毕竟俱乐部有钱', branch:'ch1_C', score:0 },
+  ]},
+],
+ch1_A: [
+  { t:'msg', s:'yunqiumi', m:'哈哈哈哈哈我也不知道' },
+  { t:'msg', s:'gengwang', m:'好，你现在是群宠了' },
+  { t:'msg', s:'gengwang', m:'来人，上教程' },
+  { t:'msg', s:'dongge', m:'世界杯 = 国家队之间的比赛' },
+  { t:'msg', s:'dongge', m:'欧冠 = 俱乐部之间的比赛' },
+  { t:'msg', s:'dongge', m:'打个比方：' },
+  { t:'msg', s:'dongge', m:'梅西在俱乐部踢球 → 那是欧冠' },
+  { t:'msg', s:'dongge', m:'梅西代表阿根廷踢球 → 那是世界杯' },
+  { t:'msg', s:'dongge', m:'世界杯四年一次，欧冠每年都有' },
+  { t:'msg', s:'dongge', m:'稀缺性决定含金量，不难理解吧' },
+  { t:'msg', s:'yunqiumi', m:'哦！所以我喜欢的是巴萨的梅西不是阿根廷的梅西' },
+  { t:'msg', s:'yunqiumi', m:'好像哪里不对' },
+  { t:'msg', s:'gengwang', m:'梅西南宁的了属于是' },
+  { t:'skill', c:'✓ 国家队与俱乐部' },
+],
+ch1_B: [
+  { t:'msg', s:'dongge', m:'对，一句话讲明白了' },
+  { t:'msg', s:'shuju', m:'精准概括，补一个冷知识' },
+  { t:'msg', s:'shuju', m:'世界杯冠军球队的球员，回国后的GDP贡献约等于一次小型经济刺激计划' },
+  { t:'msg', s:'gengwang', m:'已截图' },
+  { t:'msg', s:'gengwang', m:'下次有人说不就是踢球，直接甩这张' },
+  { t:'msg', s:'yunqiumi', m:'所以我这个问题问得还挺有水平' },
+  { t:'msg', s:'yanzhi', m:'国家队球衣比俱乐部的好看' },
+  { t:'msg', s:'yanzhi', m:'这算不算区别' },
+  { t:'skill', c:'✓ 国家队与俱乐部' },
+],
+ch1_C: [
+  { t:'msg', s:'gengwang', m:'？你是用钱看球的吗' },
+  { t:'msg', s:'dongge', m:'俱乐部确实有钱，能买最好的人' },
+  { t:'msg', s:'dongge', m:'但世界杯的意义不在这' },
+  { t:'msg', s:'dongge', m:'世界杯是国家荣誉' },
+  { t:'msg', s:'dongge', m:'你代表的是一个国家，不是一个商业品牌' },
+  { t:'msg', s:'dongge', m:'群友上数据' },
+  { t:'msg', s:'shuju', m:'1998年世界杯决赛法国对巴西' },
+  { t:'msg', s:'shuju', m:'法国国内收视率：93%' },
+  { t:'msg', s:'shuju', m:'相当于整个国家都在看' },
+  { t:'msg', s:'shuju', m:'哪个俱乐部比赛能有93%收视率？' },
+  { t:'msg', s:'dugou', m:'而且世界杯我输得更多' },
+  { t:'msg', s:'dugou', m:'参与的深度不一样' },
+  { t:'msg', s:'gengwang', m:'天台哥的角度永远如此刁钻' },
+  { t:'skill', c:'✓ 国家队与俱乐部' },
+],
+
+// ── CHAPTER 2: 为什么世界杯这么火 ──
+ch2: [
+  { t:'sys', c:'━━━ 第二章：为什么世界杯这么火 ━━━' },
+  { t:'msg', s:'yunqiumi', m:'等等，我又有问题了' },
+  { t:'msg', s:'yunqiumi', m:'不就是踢个球吗，为什么全世界都疯了' },
+  { t:'msg', s:'gengwang', m:'好问题' },
+  { t:'msg', s:'gengwang', m:'你先回答我：为什么你高考那两天，你爸妈比你紧张' },
+  { t:'msg', s:'shechu', m:'我高考那年正好世界杯' },
+  { t:'msg', s:'shechu', m:'我爸说我考不上可以复读，世界杯四年后才有' },
+  { t:'msg', s:'shechu', m:'亲生的' },
+  { t:'msg', s:'tuitiutui', m:'四年啊，你想想这四年你能经历什么' },
+  { t:'msg', s:'tuitiutui', m:'大学毕业、换三份工作、谈两次恋爱、搬两次家' },
+  { t:'msg', s:'tuitiutui', m:'然后世界杯来了，你发现喜欢的球员老了四岁，你也老了四岁' },
+  { t:'msg', s:'dongge', m:'世界杯承载的不只是足球' },
+  { t:'msg', s:'dongge', m:'2014年巴西世界杯，德国7:1巴西那场' },
+  { t:'msg', s:'dongge', m:'巴西全国放假半天，街上没人' },
+  { t:'msg', s:'dongge', m:'那一代巴西人的集体记忆，就是一个比分牌上的7:1' },
+  { t:'msg', s:'yuce', m:'7:1那场我也预测反了' },
+  { t:'msg', s:'yuce', m:'为什么说也' },
+  { t:'msg', s:'gengwang', m:'剧本哥你真的，避开了所有正确答案' },
+  { t:'msg', s:'gengwang', m:'反向欧皇' },
+  { t:'msg', s:'zhanshu', m:'从文化角度讲，世界杯是人类为数不多的同步事件' },
+  { t:'msg', s:'zhanshu', m:'同一时间全球十亿人看着同一个画面' },
+  { t:'msg', s:'zhanshu', m:'在碎片化时代，这种共同体验本身就是奇迹' },
+  { t:'msg', s:'yanzhi', m:'而且每届都有帅哥' },
+  { t:'msg', s:'yanzhi', m:'02年贝克汉姆那个莫西干头谁还记得' },
+  { t:'msg', s:'yanzhi', m:'全网都在模仿' },
+  { t:'msg', s:'shuju', m:'给你几个数字感受一下体量' },
+  { t:'msg', s:'shuju', m:'世界杯总观众 ≈ 全球人口的1/2' },
+  { t:'msg', s:'shuju', m:'世界杯月期间全球工作效率下降约13%' },
+  { t:'msg', s:'shuju', m:'决赛日，多个国家央行会预留流动性应对市场波动' },
+  { t:'msg', s:'gengwang', m:'翻译一下数据帝最后一句' },
+  { t:'msg', s:'gengwang', m:'全世界的基金经理都在摸鱼看球' },
+  { t:'msg', s:'gengwang', m:'一不小心股市就崩了' },
+  { t:'msg', s:'shechu', m:'工作效率下降13%？' },
+  { t:'msg', s:'shechu', m:'我们部门至少30%' },
+  { t:'choice', id:'ch2', prompt:'你：', opts:[
+    { label:'A 这么夸张？我以为就是个体育比赛', branch:'ch2_A', score:0 },
+    { label:'B 我懂了，就像春晚/超级碗那种全民事件对吧', branch:'ch2_B', score:5 },
+    { label:'C 四年一次确实挺珍贵的，错过等四年', branch:'ch2_C', score:5 },
+  ]},
+],
+ch2_A: [
+  { t:'msg', s:'dongge', m:'不夸张' },
+  { t:'msg', s:'dongge', m:'2006年世界杯决赛，齐达内头顶马特拉齐' },
+  { t:'msg', s:'dongge', m:'那个画面后来出现在法国街头涂鸦、意大利矿泉水广告、一首法语说唱、一部法国电影、一个经济学论文的案例' },
+  { t:'msg', s:'gengwang', m:'一个体育比赛出圈到这种程度，只有世界杯吧' },
+  { t:'msg', s:'gengwang', m:'比我在公司十年做的PPT都有影响力' },
+  { t:'skill', c:'✓ 世界杯的重要性' },
+],
+ch2_B: [
+  { t:'msg', s:'gengwang', m:'对对对' },
+  { t:'msg', s:'gengwang', m:'春晚每年都有，看的人越来越少' },
+  { t:'msg', s:'gengwang', m:'世界杯四年才有，看的人越来越多' },
+  { t:'msg', s:'gengwang', m:'春晚你看看人家' },
+  { t:'msg', s:'tuitiutui', m:'但有一点像' },
+  { t:'msg', s:'tuitiutui', m:'不管你平时看不看，到了那个时间点，所有人都在看' },
+  { t:'msg', s:'tuitiutui', m:'你不看，你就是局外人' },
+  { t:'skill', c:'✓ 世界杯的重要性' },
+],
+ch2_C: [
+  { t:'msg', s:'shuju', m:'对，而且等四年是有代价的' },
+  { t:'msg', s:'shuju', m:'四年前和你一起看球的人，可能已经不在你身边了' },
+  { t:'msg', s:'shuju', m:'四年后，现在18岁的新星可能已经退了' },
+  { t:'msg', s:'shuju', m:'世界杯是时间的标尺' },
+  { t:'msg', s:'shechu', m:'别说了，破防了' },
+  { t:'msg', s:'shechu', m:'四年前我还是个实习生，现在头都快秃了' },
+  { t:'skill', c:'✓ 世界杯的重要性' },
+],
+
+// ── CHAPTER 3: 怎么看比赛 ──
+ch3: [
+  { t:'sys', c:'━━━ 第三章：怎么看比赛 ━━━' },
+  { t:'msg', s:'yunqiumi', m:'说实话' },
+  { t:'msg', s:'yunqiumi', m:'我看了半场，不知道在看啥' },
+  { t:'msg', s:'gengwang', m:'本届世界杯第一个诚实的人出现了' },
+  { t:'msg', s:'dongge', m:'看球有很多种看法' },
+  { t:'msg', s:'dongge', m:'战术、技术、故事、氛围，看你喜欢什么' },
+  { t:'msg', s:'zhanshu', m:'看得懂战术的话，比赛就像下棋' },
+  { t:'msg', s:'zhanshu', m:'中场每一次站位调整，都是在抢夺空间' },
+  { t:'msg', s:'zhanshu', m:'比如阿根廷对荷兰那场……' },
+  { t:'msg', s:'gengwang', m:'战术哥等等，我帮你翻译一下' },
+  { t:'msg', s:'gengwang', m:'大意就是：看不懂的话，看个热闹也挺好' },
+  { t:'msg', s:'yuce', m:'我是看我的钱在场上跑' },
+  { t:'msg', s:'dugou', m:'剧本哥今天你买了谁' },
+  { t:'msg', s:'dugou', m:'我先躲一下' },
+  { t:'msg', s:'yanzhi', m:'我是看脸的，对不起' },
+  { t:'msg', s:'yanzhi', m:'这场首发颜值真的不太行，我先撤了' },
+  { t:'msg', s:'tuitiutui', m:'年轻人，你认识所有球员吗' },
+  { t:'msg', s:'tuitiutui', m:'不认识的话，假装在看也行，反正也没人拆穿你' },
+  { t:'msg', s:'jijin', m:'我一般等赛后看集锦' },
+  { t:'msg', s:'jijin', m:'90分钟浓缩成3分钟，全是高潮' },
+  { t:'msg', s:'jijin', m:'性价比最高' },
+  { t:'msg', s:'dongge', m:'回放哥你可以退群了' },
+  { t:'choice', id:'ch3', prompt:'你平时看球更喜欢：', opts:[
+    { label:'A 看热闹', branch:'ch3_A', score:3 },
+    { label:'B 看明星', branch:'ch3_B', score:4 },
+    { label:'C 看故事', branch:'ch3_C', score:5 },
+    { label:'D 看战术', branch:'ch3_D', score:5 },
+  ]},
+],
+ch3_A: [
+  { t:'msg', s:'gengwang', m:'看热闹才是真球迷' },
+  { t:'msg', s:'gengwang', m:'进球了大喊，扑救了"卧槽"，踢飞了"哎呀"' },
+  { t:'msg', s:'gengwang', m:'三件套拿捏了' },
+  { t:'msg', s:'shechu', m:'我就这样' },
+  { t:'msg', s:'shechu', m:'主打一个参与感' },
+  { t:'info', c:'看热闹专属内容\n\n世界杯热闹在哪儿：\n• 爆冷：强队被弱队干翻，堪比爽文剧情\n• 绝杀：最后几分钟进球，心脏不好的别看\n• 冲突：场上打架永远比踢球好看\n• 名场面：经典表情包诞生地\n\n看热闹不需要懂战术，会喊卧槽就行。' },
+  { t:'skill', c:'✓ 观赛视角' },
+],
+ch3_B: [
+  { t:'msg', s:'yanzhi', m:'！！' },
+  { t:'msg', s:'yanzhi', m:'我终于不是一个人了' },
+  { t:'msg', s:'dongge', m:'看明星也没问题，世界杯历来是巨星舞台' },
+  { t:'msg', s:'dongge', m:'86年马拉多纳，98年齐达内，02年大罗，10年伊涅斯塔……' },
+  { t:'msg', s:'dongge', m:'每一届都会诞生一个新的神' },
+  { t:'info', c:'2026世界杯看点：\n• 老将最后一舞（39岁的梅西、41岁的C罗，这次是真的诸神的黄昏）\n• 新星首秀（18岁的亚马尔、21岁的贝林厄姆第一次上世界杯舞台）\n• 巨星交接（谁将成为下一个球王？）\n\n看明星 = 看人的巅峰时刻。\n你见证的可能是一个历史画面。' },
+  { t:'skill', c:'✓ 观赛视角' },
+],
+ch3_C: [
+  { t:'msg', s:'gengwang', m:'哦？家人是来追剧的' },
+  { t:'msg', s:'gengwang', m:'世界杯确实比网飞好看' },
+  { t:'msg', s:'tuitiutui', m:'我看了二十多年，说到底，最吸引人的永远是故事' },
+  { t:'msg', s:'tuitiutui', m:'98年克罗地亚，一个建国才七年的国家，拿了季军' },
+  { t:'msg', s:'tuitiutui', m:'14年梅西距离封神只差一步' },
+  { t:'msg', s:'tuitiutui', m:'你说这是体育比赛？这明明是古希腊悲剧好嘛' },
+  { t:'info', c:'世界杯四大故事线：\n• 黑马：没人看好的球队一路杀进四强\n• 宿敌：阿根廷vs英格兰、巴西vs阿根廷……\n• 复仇：四年前输了，四年后赢回来\n• 圆梦：老将生涯最后一届，拿个冠军回家\n\n世界杯不需要剧本，生活就是最好的编剧。' },
+  { t:'skill', c:'✓ 观赛视角' },
+],
+ch3_D: [
+  { t:'msg', s:'zhanshu', m:'终于来了一个正常人' },
+  { t:'msg', s:'dongge', m:'那我建议你先理解几个基本概念' },
+  { t:'msg', s:'dongge', m:'控球、反击、高位逼抢、低位防守' },
+  { t:'msg', s:'dongge', m:'足球就是22个人下的一盘快棋' },
+  { t:'msg', s:'gengwang', m:'翻译一下' },
+  { t:'msg', s:'gengwang', m:'你马上就要变得跟我们一样无趣了' },
+  { t:'msg', s:'gengwang', m:'看什么都想分析，一分析就吵起来' },
+  { t:'info', c:'新手战术入门：\n• 控球打法：我拿着球不给你，急死你\n• 防守反击：你来打我啊，我偷偷打你\n• 高位逼抢：在你家门口抢你球\n• 摆大巴：11个人堵门，你踢吧\n\n战术的本质：用什么方式赢，都是有性格的。' },
+  { t:'skill', c:'✓ 观赛视角' },
+],
+
+// ── CHAPTER 4: 越位危机 ──
+ch4: [
+  { t:'sys', c:'━━━ 第四章：越位危机 ━━━' },
+  { t:'msg', s:'yunqiumi', m:'救命' },
+  { t:'msg', s:'yunqiumi', m:'谁能用人类语言解释越位' },
+  { t:'msg', s:'dongge', m:'越位（Offside）是指进攻方球员在传球瞬间，比倒数第二名防守球员更靠近对方球门线的位置，并且参与了进攻' },
+  { t:'msg', s:'dongge', m:'具体来说，根据国际足球理事会（IFAB）规则第11条……' },
+  { t:'msg', s:'yunqiumi', m:'第一句就读不下去了' },
+  { t:'msg', s:'gengwang', m:'没看懂' },
+  { t:'msg', s:'yuce', m:'没看懂' },
+  { t:'msg', s:'shechu', m:'没看懂' },
+  { t:'msg', s:'yanzhi', m:'读了一半放弃了' },
+  { t:'msg', s:'dugou', m:'我只需要知道这球算不算就完了' },
+  { t:'msg', s:'dugou', m:'越位 = 我白激动了' },
+  { t:'msg', s:'gengwang', m:'@战术级理解 你这是在写论文吗' },
+  { t:'msg', s:'gengwang', m:'顺便把裁判证考了吧' },
+  { t:'msg', s:'dongge', m:'我已经尽量简化了……' },
+  { t:'msg', s:'tuitiutui', m:'我来试试' },
+  { t:'msg', s:'tuitiutui', m:'你不能在队友传球的瞬间站在对方最后一个人后面等着接球' },
+  { t:'msg', s:'tuitiutui', m:'简单说就是不能蹲坑' },
+  { t:'msg', s:'yunqiumi', m:'还是不太懂……' },
+  { t:'msg', s:'gengwang', m:'你想象一下' },
+  { t:'msg', s:'gengwang', m:'你和你室友去食堂打饭' },
+  { t:'msg', s:'gengwang', m:'你室友说"我去占位"' },
+  { t:'msg', s:'gengwang', m:'结果你直接冲到打饭阿姨面前' },
+  { t:'msg', s:'gengwang', m:'你室友还没排到队呢' },
+  { t:'msg', s:'gengwang', m:'喊了你一声，你回头，饭已经打好了' },
+  { t:'msg', s:'gengwang', m:'这就是越位' },
+  { t:'msg', s:'yunqiumi', m:'！！！' },
+  { t:'msg', s:'yunqiumi', m:'好像懂了！但不确定' },
+  { t:'msg', s:'shuju', m:'食堂理论居然work了' },
+  { t:'msg', s:'shuju', m:'这值得一篇论文' },
+  { t:'minigame' },
+  { t:'msg', s:'yunqiumi', m:'卧槽我终于懂了' },
+  { t:'msg', s:'shechu', m:'说实话我也懂了' },
+  { t:'msg', s:'shechu', m:'之前都是装的' },
+  { t:'msg', s:'gengwang', m:'恭喜群友集体脱盲' },
+  { t:'msg', s:'dongge', m:'……早知道我就不写300字了' },
+  { t:'msg', s:'yunqiumi', m:'等等' },
+  { t:'msg', s:'yunqiumi', m:'所以平时看球，进球了然后裁判画线吹掉' },
+  { t:'msg', s:'yunqiumi', m:'那个就是越位？' },
+  { t:'msg', s:'dongge', m:'对' },
+  { t:'msg', s:'dongge', m:'VAR画的那条线就是在判断传球瞬间接球的人有没有越位' },
+  { t:'msg', s:'dongge', m:'你看到画线就知道：哦，在查越位' },
+  { t:'msg', s:'yunqiumi', m:'那VAR到底是啥' },
+  { t:'msg', s:'yunqiumi', m:'就是个回放吗' },
+  { t:'msg', s:'dongge', m:'Video Assistant Referee，视频助理裁判' },
+  { t:'msg', s:'dongge', m:'场上有争议的时候，场外的视频裁判组会看回放' },
+  { t:'msg', s:'dongge', m:'然后告诉主裁判刚才那球可能有问题' },
+  { t:'msg', s:'dongge', m:'主裁判跑到场边看屏幕，自己决定改不改判' },
+  { t:'msg', s:'dongge', m:'进球、点球、红牌、越位，这四种情况VAR都可以介入' },
+  { t:'msg', s:'gengwang', m:'说人话就是以前裁判一个人说了算，错了就错了' },
+  { t:'msg', s:'gengwang', m:'现在有场外团队看回放帮他纠错' },
+  { t:'msg', s:'gengwang', m:'但还是会吵起来，因为画线画到脚尖三厘米这种事永远有人不服' },
+  { t:'msg', s:'yuce', m:'群梅西你已经可以出去跟人吹了' },
+  { t:'msg', s:'yuce', m:'越位嘛就是打饭插队，我太懂了～' },
+  { t:'msg', s:'tuitiutui', m:'你们算幸福的了' },
+  { t:'msg', s:'tuitiutui', m:'以前没VAR的年代' },
+  { t:'msg', s:'tuitiutui', m:'越不越位全看边裁眼神好不好' },
+  { t:'msg', s:'tuitiutui', m:'那个冤案才叫多' },
+  { t:'msg', s:'yanzhi', m:'不管怎么说' },
+  { t:'msg', s:'yanzhi', m:'庆祝完再被吹掉' },
+  { t:'msg', s:'yanzhi', m:'对表情管理很不好！' },
+  { t:'skill', c:'✓ 越位' },
+],
+
+// ── CHAPTER 6: 观赛群生存指南 ──
+ch6_intro: [
+  { t:'sys', c:'━━━ 第六章：观赛群生存指南 ━━━' },
+  { t:'sys', c:'⚽ 观赛群生存模拟\n\n以下将出现 4 个经典场景\n选对发言，不要暴露新手身份' },
+],
+ch6_s1: [
+  { t:'sys', c:'── 场景一：比赛开始前 ──' },
+  { t:'msg', s:'dongge', m:'首发出来了' },
+  { t:'msg', s:'dongge', m:'右边路果然是替补，看来主教练想下半场再发力' },
+  { t:'msg', s:'yuce', m:'首发看完了，我赌2:0' },
+  { t:'msg', s:'yuce', m:'上半场1:0，下半场补一个' },
+  { t:'msg', s:'zhanshu', m:'4-3-3对4-2-3-1，中场三对二，理论上能控住球' },
+  { t:'msg', s:'zhanshu', m:'但右边路替补是个隐患，被针对打身后就麻烦了' },
+  { t:'choice', id:'ch6_s1', prompt:'比赛还没开始，群友都在讨论。你说：', opts:[
+    { label:'A 这个首发什么意思？完全看不懂', branch:'ch6_s1_A', score:0, exp:10 },
+    { label:'B 右边路替补确实有点悬，不过对面左后卫也不强', branch:'ch6_s1_B', score:8 },
+    { label:'C 几点开始啊，我刚醒', branch:'ch6_s1_C', score:3 },
+  ]},
+],
+ch6_s1_A: [
+  { t:'msg', s:'gengwang', m:'哈哈哈哈哈诚实' },
+  { t:'msg', s:'dongge', m:'那我简单说一下' },
+  { t:'msg', s:'dongge', m:'首发就是今天上场的11个人' },
+  { t:'msg', s:'dongge', m:'名单赛前一小时公布，所以现在大家在看部署' },
+  { t:'sys', c:'⚠️ 暴露度 +10%（群友觉得你有点太诚实了）' },
+],
+ch6_s1_B: [
+  { t:'msg', s:'zhanshu', m:'对吧！你也觉得右边路有问题' },
+  { t:'msg', s:'zhanshu', m:'我说了三场了，终于有人认同我' },
+  { t:'msg', s:'dongge', m:'不过对面左后卫本赛季场均拦截只有1.2次' },
+  { t:'msg', s:'dongge', m:'替补也不一定会被打爆' },
+  { t:'msg', s:'yuce', m:'你们分析这么多' },
+  { t:'msg', s:'yuce', m:'踢起来全不是那回事' },
+  { t:'sys', c:'✅ 完美融入！群友觉得你懂行' },
+],
+ch6_s1_C: [
+  { t:'msg', s:'aoaye', m:'凌晨3点' },
+  { t:'msg', s:'aoaye', m:'刚醒是什么作息' },
+  { t:'msg', s:'shechu', m:'这有个同道中人' },
+  { t:'msg', s:'shechu', m:'我也是刚加班完准备看' },
+  { t:'sys', c:'🤝 中立发言，不暴露但也没加分' },
+],
+
+ch6_s2: [
+  { t:'sys', c:'── 场景二：比赛0:0，场面沉闷 ──' },
+  { t:'msg', s:'yunqiumi', m:'好无聊啊，怎么还不进球' },
+  { t:'msg', s:'gengwang', m:'0:0是足球比赛最美的比分' },
+  { t:'msg', s:'gengwang', m:'每一分钟都在制造焦虑' },
+  { t:'msg', s:'tuitiutui', m:'1994年世界杯决赛也是0:0' },
+  { t:'msg', s:'tuitiutui', m:'最后点球大战，巴乔一脚踢飞' },
+  { t:'msg', s:'tuitiutui', m:'那场0:0比大部分有进球的比赛都好看' },
+  { t:'msg', s:'dugou', m:'我必须说一句' },
+  { t:'msg', s:'dugou', m:'0:0对我很不友好' },
+  { t:'msg', s:'dugou', m:'买了大球的表示很急' },
+  { t:'choice', id:'ch6_s2', prompt:'半场了还是0:0，群友开始聊。你说：', opts:[
+    { label:'A 这么无聊我不看了 睡觉去', branch:'ch6_s2_A', score:0, exp:20 },
+    { label:'B 虽然没进球但中场绞杀挺好看的', branch:'ch6_s2_B', score:8 },
+    { label:'C 下半场肯定进球，这种场面一般都是剧本', branch:'ch6_s2_C', score:4 },
+  ]},
+],
+ch6_s2_A: [
+  { t:'msg', s:'aoaye', m:'？？？' },
+  { t:'msg', s:'aoaye', m:'3点的比赛你说不看了' },
+  { t:'msg', s:'aoaye', m:'你对得起这个时间吗' },
+  { t:'msg', s:'gengwang', m:'这人刚才还在' },
+  { t:'msg', s:'gengwang', m:'现在已经放弃了' },
+  { t:'msg', s:'gengwang', m:'真的假的' },
+  { t:'sys', c:'⚠️ 社死边缘' },
+],
+ch6_s2_B: [
+  { t:'msg', s:'zhanshu', m:'！！' },
+  { t:'msg', s:'zhanshu', m:'你居然能看出中场绞杀' },
+  { t:'msg', s:'zhanshu', m:'你不是新人吧' },
+  { t:'msg', s:'dongge', m:'确实，虽然没进球但战术博弈很精彩' },
+  { t:'msg', s:'dongge', m:'双方都在等对方先犯错' },
+  { t:'sys', c:'✅ 高水平发言！群友对你的评价提升' },
+],
+ch6_s2_C: [
+  { t:'msg', s:'yuce', m:'家人你懂我' },
+  { t:'msg', s:'yuce', m:'足球是有剧本的' },
+  { t:'msg', s:'yuce', m:'下半场70分钟后必有一球' },
+  { t:'msg', s:'dugou', m:'你们这种肯定进球的自信到底哪来的' },
+  { t:'msg', s:'dugou', m:'上次也这么说，然后0:0结束，我亏了一个月工资' },
+  { t:'sys', c:'😐 安全发言，但有点剧本化了' },
+],
+
+ch6_s3: [
+  { t:'sys', c:'── 场景三：弱队领先强队 ──' },
+  { t:'msg', s:'yunqiumi', m:'？？？' },
+  { t:'msg', s:'yunqiumi', m:'弱队怎么先进球了' },
+  { t:'msg', s:'dongge', m:'这就是世界杯' },
+  { t:'msg', s:'dongge', m:'强队围攻半天没进球，弱队一个反击就进了' },
+  { t:'msg', s:'yuce', m:'我tm预测的2:0强队赢' },
+  { t:'msg', s:'yuce', m:'现在1:0弱队领先' },
+  { t:'msg', s:'yuce', m:'我先缓缓' },
+  { t:'msg', s:'dugou', m:'天台一位不请自来' },
+  { t:'msg', s:'dugou', m:'弱队领先，我血压已经上来了' },
+  { t:'msg', s:'tuitiutui', m:'2002年揭幕战，世界杯+欧洲杯双料冠军法国队' },
+  { t:'msg', s:'tuitiutui', m:'输给了第一次参加世界杯的塞内加尔' },
+  { t:'msg', s:'tuitiutui', m:'世界杯没有所谓的谁应该赢' },
+  { t:'choice', id:'ch6_s3', prompt:'弱队居然领先了。你说：', opts:[
+    { label:'A 假球吧？这肯定是假球！', branch:'ch6_s3_A', score:0, exp:20 },
+    { label:'B 世界杯真的是圆的一切皆有可能啊', branch:'ch6_s3_B', score:8 },
+    { label:'C 弱队能守住吗，强队肯定要反扑了', branch:'ch6_s3_C', score:5 },
+  ]},
+],
+ch6_s3_A: [
+  { t:'msg', s:'dongge', m:'不是所有爆冷都叫假球' },
+  { t:'msg', s:'dongge', m:'弱队能进世界杯的都不是真的弱' },
+  { t:'msg', s:'gengwang', m:'观赛群生存法则：永远不要说假球' },
+  { t:'msg', s:'gengwang', m:'除非你想被懂哥教育十分钟' },
+  { t:'sys', c:'⚠️⚠️ 重大暴露！触发群友教育模式' },
+],
+ch6_s3_B: [
+  { t:'msg', s:'gengwang', m:'足球是圆的' },
+  { t:'msg', s:'gengwang', m:'这句话是世界杯万能发言' },
+  { t:'msg', s:'gengwang', m:'什么时候说都成立' },
+  { t:'msg', s:'tuitiutui', m:'"足球是圆的"是1954年德国队教练说的' },
+  { t:'msg', s:'tuitiutui', m:'那年西德赢了当时无敌的匈牙利' },
+  { t:'msg', s:'tuitiutui', m:'这句话用了70年了，还没过时' },
+  { t:'sys', c:'✅ 经典发言，融入度提升' },
+],
+ch6_s3_C: [
+  { t:'msg', s:'zhanshu', m:'看体能' },
+  { t:'msg', s:'zhanshu', m:'弱队70分钟后体力下滑会很明显' },
+  { t:'msg', s:'zhanshu', m:'强队及时换人冲击的话，大概率能扳平' },
+  { t:'msg', s:'dongge', m:'世界杯换人名额比联赛多，强队后手优势很大' },
+  { t:'sys', c:'✅ 自然的关注点，体现思考' },
+],
+
+ch6_s4: [
+  { t:'sys', c:'── 场景四：进球被VAR吹越位 ──' },
+  { t:'msg', s:'yunqiumi', m:'？？？？？？' },
+  { t:'msg', s:'yunqiumi', m:'为什么不算' },
+  { t:'msg', s:'dongge', m:'越位，很明显' },
+  { t:'msg', s:'dongge', m:'VAR画线了，脚尖超了大概3厘米' },
+  { t:'msg', s:'dugou', m:'脚尖3厘米' },
+  { t:'msg', s:'dugou', m:'这就是现代足球' },
+  { t:'msg', s:'dugou', m:'血压已经上来了' },
+  { t:'msg', s:'yuce', m:'我刚已经开始庆祝了' },
+  { t:'msg', s:'yuce', m:'然后裁判画了个框' },
+  { t:'msg', s:'yuce', m:'这种痛，难以形容' },
+  { t:'msg', s:'gengwang', m:'VAR，科技改变足球' },
+  { t:'msg', s:'gengwang', m:'以前靠裁判眼神，现在靠画线精度' },
+  { t:'msg', s:'gengwang', m:'也不知道哪个更让人生气' },
+  { t:'choice', id:'ch6_s4', prompt:'进球被吹掉，群里炸了。你说：', opts:[
+    { label:'A 裁判是不是收钱了？？？', branch:'ch6_s4_A', score:0, exp:30 },
+    { label:'B 哎，越位就是越位，虽然确实很可惜', branch:'ch6_s4_B', score:8 },
+    { label:'C 这脚尖能看出来？VAR是不是太严格了', branch:'ch6_s4_C', score:4 },
+  ]},
+],
+ch6_s4_A: [
+  { t:'msg', s:'dongge', m:'哥们，这是越位' },
+  { t:'msg', s:'dongge', m:'VAR画线画得明明白白' },
+  { t:'msg', s:'gengwang', m:'观赛群生存法则：永远不要质疑裁判的职业道德' },
+  { t:'msg', s:'gengwang', m:'除非你真的想被懂哥发300字VAR科普' },
+  { t:'msg', s:'yunqiumi', m:'哈哈哈哈，连我都知道要先看回放' },
+  { t:'sys', c:'⚠️⚠️⚠️ 严重暴露！触发懂哥长篇教育' },
+],
+ch6_s4_B: [
+  { t:'msg', s:'tuitiutui', m:'理性' },
+  { t:'msg', s:'tuitiutui', m:'虽然可惜，但规则就是规则' },
+  { t:'msg', s:'zhanshu', m:'越位规则保护的是防守方的公平性' },
+  { t:'msg', s:'zhanshu', m:'没有越位的话，前锋可以直接站在门将旁边等着接球' },
+  { t:'msg', s:'zhanshu', m:'那足球就没法看了' },
+  { t:'sys', c:'✅ 理性发言，体现学习成果' },
+],
+ch6_s4_C: [
+  { t:'msg', s:'shuju', m:'VAR引入后，越位判罚准确率从92%提升到98%' },
+  { t:'msg', s:'shuju', m:'代价是每次庆祝完都要等30秒' },
+  { t:'msg', s:'shuju', m:'人类情绪的代价' },
+  { t:'msg', s:'gengwang', m:'数据帝今天说话怎么有哲学味了' },
+  { t:'msg', s:'gengwang', m:'是不是喝了' },
+  { t:'sys', c:'😐 安全发言，体现人文关怀' },
+],
+
+// ── FINAL CHAPTER: 终极测试 ──
+final_intro: [
+  { t:'sys', c:'━━━ 终极测试 ━━━' },
+  { t:'sys', c:'⚽ 终极测试\n\n即将进入真实群聊模拟\n连续 20+ 条消息\n选择时机发言\n\n目标：不要暴露你是新手' },
+],
+final_1: [
+  { t:'msg', s:'dongge', m:'今晚这场裁判是西班牙的' },
+  { t:'msg', s:'yuce', m:'西班牙裁判？完了，偏哨预定' },
+  { t:'msg', s:'gengwang', m:'剧本哥已经提前给输球找理由了' },
+  { t:'msg', s:'gengwang', m:'专业' },
+  { t:'msg', s:'yunqiumi', m:'今晚谁踢谁啊，我忘了' },
+  { t:'final_choice', id:'final_1', opts:[
+    { label:'A 法国踢巴西啊这都能忘', score:5 },
+    { label:'B 我也不知道，同问', score:0 },
+    { label:'C 不重要，看就完了', score:3 },
+  ]},
+],
+final_2: [
+  { t:'msg', s:'zhanshu', m:'法国大概率4-3-3，格列兹曼回撤到中场' },
+  { t:'msg', s:'zhanshu', m:'巴西这边4-2-3-1，维尼修斯左边' },
+  { t:'msg', s:'zhanshu', m:'关键在中场人数优势' },
+  { t:'msg', s:'gengwang', m:'战术哥又开始了' },
+  { t:'msg', s:'gengwang', m:'哥，比赛还没开始' },
+  { t:'msg', s:'tuitiutui', m:'法国踢巴西是有历史的' },
+  { t:'msg', s:'tuitiutui', m:'98年决赛齐达内两个头球，法国封神' },
+  { t:'msg', s:'tuitiutui', m:'06年又是齐达内助攻亨利绝杀巴西' },
+  { t:'msg', s:'tuitiutui', m:'巴西世界杯上碰到法国队，心里有阴影' },
+  { t:'msg', s:'yunqiumi', m:'齐达内不是教练吗，怎么98年还踢球' },
+  { t:'msg', s:'gengwang', m:'群梅西我真的哭死' },
+  { t:'msg', s:'gengwang', m:'这就是我们群的活宝' },
+  { t:'final_choice', id:'final_2', opts:[
+    { label:'A 齐达内98年拿冠军，06年退役，后来当教练。不过这是常识啦', score:8 },
+    { label:'B 我也不知道齐达内以前踢球的，长知识了', score:2 },
+    { label:'C 群梅西你认真的吗哈哈哈哈', score:5 },
+  ]},
+],
+final_3: [
+  { t:'msg', s:'aoaye', m:'几点开始！！！！！！！！！！！' },
+  { t:'msg', s:'shechu', m:'凌晨2点' },
+  { t:'msg', s:'shechu', m:'咖啡备好了' },
+  { t:'msg', s:'shechu', m:'明天还要上班，但无所谓，我会请假' },
+  { t:'msg', s:'dugou', m:'2点开始，我3点起床看结果' },
+  { t:'msg', s:'dugou', m:'反正前半小时也不会有进球' },
+  { t:'msg', s:'yuce', m:'我押巴西2:1法国' },
+  { t:'msg', s:'yuce', m:'复仇之战' },
+  { t:'final_choice', id:'final_3', opts:[
+    { label:'A 我押法国赢，姆巴佩这场状态好', score:8 },
+    { label:'B 不预测，看比赛就好', score:3 },
+    { label:'C 剧本哥谨慎，上次全错了', score:5 },
+  ]},
+],
+final_4: [
+  { t:'msg', s:'yanzhi', m:'法国首发我看了' },
+  { t:'msg', s:'yanzhi', m:'这届颜值在线' },
+  { t:'msg', s:'yanzhi', m:'尤其是左边锋，我可以' },
+  { t:'msg', s:'yunqiumi', m:'左边锋是谁' },
+  { t:'msg', s:'dongge', m:'姆巴佩' },
+  { t:'msg', s:'dongge', m:'你确定你是在看球' },
+  { t:'msg', s:'yunqiumi', m:'哦！他穿几号' },
+  { t:'msg', s:'gengwang', m:'群梅西' },
+  { t:'msg', s:'gengwang', m:'姆巴佩穿10号，法国队10号' },
+  { t:'msg', s:'gengwang', m:'下次别说自己是球迷了，说自己是路人' },
+  { t:'final_choice', id:'final_4', opts:[
+    { label:'A 姆巴佩10号，上一届决赛帽子戏法那场也是10号', score:10 },
+    { label:'B 没事群梅西，慢慢学。我也刚搞明白越位没多久', score:6 },
+    { label:'C 你们别欺负群梅西了hhh 至少他承认不知道', score:5 },
+  ]},
+],
+final_5: [
+  { t:'msg', s:'tuitiutui', m:'说起来姆巴佩也28岁了' },
+  { t:'msg', s:'tuitiutui', m:'这可能是他最后一届巅峰世界杯' },
+  { t:'msg', s:'dongge', m:'28岁是黄金年龄' },
+  { t:'msg', s:'dongge', m:'不是最后一届' },
+  { t:'msg', s:'tuitiutui', m:'年轻人你不懂' },
+  { t:'msg', s:'tuitiutui', m:'四年后的事谁说得准呢' },
+  { t:'msg', s:'shechu', m:'别说了' },
+  { t:'msg', s:'shechu', m:'四年前我还头发茂密' },
+  { t:'msg', s:'shechu', m:'现在……' },
+  { t:'msg', s:'gengwang', m:'世界杯就是人生的度量衡' },
+  { t:'msg', s:'gengwang', m:'测的不是球技，是你的发量' },
+  { t:'msg', s:'zhanshu', m:'比赛马上开始了' },
+  { t:'msg', s:'zhanshu', m:'兄弟们看球' },
+  { t:'msg', s:'aoaye', m:'开！始！了！' },
+  { t:'msg', s:'yunqiumi', m:'第一分钟就好激烈' },
+  { t:'msg', s:'yunqiumi', m:'虽然不知道在看啥但是很激动' },
+  { t:'final_choice', id:'final_5', opts:[
+    { label:'A 开局高位逼抢很凶，法国队想抢开局', score:10 },
+    { label:'B 一起看吧！世界杯就是要一起看才过瘾', score:5 },
+    { label:'C （默默发一个⚽表情）', score:2 },
+  ]},
+],
+};
+
+// Flatten chapters that start with "ch" prefix into the main script object
+// (They're already flat)
+
+// ═══════════════════════════════════════
+// RENDER ENGINE
+// ═══════════════════════════════════════
+const chat = document.getElementById('chat');
+const choicesDiv = document.getElementById('choices');
+const resultDiv = document.getElementById('result');
+
+function avatarHTML(ch) {
+  if (ch.img) {
+    return `<div class="avatar" style="background:${ch.color}"><img src="${ch.img}" onerror="this.style.display='none';this.parentNode.textContent='${ch.init}'"></div>`;
+  }
+  return `<div class="avatar" style="background:${ch.color}">${ch.init}</div>`;
+}
+
+function addSysMsg(text) {
+  const div = document.createElement('div');
+  div.className = 'sys-msg';
+  div.textContent = text.trim();
+  chat.appendChild(div);
+  scrollBottom();
+}
+
+function addSysBox(text) {
+  const div = document.createElement('div');
+  div.className = 'sys-msg sys-box';
+  div.textContent = text.trim();
+  chat.appendChild(div);
+  scrollBottom();
+}
+
+function addMessage(senderKey, text) {
+  const ch = CHARS[senderKey];
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = avatarHTML(ch) +
+    `<div class="msg-body"><div class="nickname">${ch.name}</div><div class="bubble">${escapeHtml(text.trim())}</div></div>`;
+  chat.appendChild(row);
+  scrollBottom();
+}
+
+function addSelfMessage(text) {
+  const display = text.replace(/^[A-D]\s*/, '');
+  const row = document.createElement('div');
+  row.className = 'msg-row self';
+  row.innerHTML = `<div class="msg-body"><div class="nickname">${escapeHtml(state.username)}</div><div class="bubble">${escapeHtml(display)}</div></div>`;
+  chat.appendChild(row);
+  scrollBottom();
+}
+
+function addChapterTitle(text) {
+  const div = document.createElement('div');
+  div.className = 'sys-msg chapter-title';
+  div.textContent = text.trim();
+  chat.appendChild(div);
+  scrollBottom();
+}
+
+function addSkillCard(text) {
+  const div = document.createElement('div');
+  div.className = 'skill-card';
+  div.innerHTML = `<div class="check">🏅</div>${escapeHtml(text.trim())}`;
+  chat.appendChild(div);
+  scrollBottom();
+}
+
+function addInfoCard(text) {
+  const div = document.createElement('div');
+  div.className = 'sys-msg sys-box';
+  div.style.whiteSpace = 'pre-line';
+  div.textContent = text.trim();
+  chat.appendChild(div);
+  scrollBottom();
+}
+
+function showTyping(senderKey, duration) {
+  const myGameId = gameId;
+  return new Promise(resolve => {
+    const ch = CHARS[senderKey];
+    const div = document.createElement('div');
+    div.className = 'typing';
+    div.innerHTML = avatarHTML(ch) + '<div class="msg-body"><div class="nickname">' + ch.name + '</div><div class="dots"><span></span><span></span><span></span></div></div>';
+    div.id = 'typing-indicator';
+    chat.appendChild(div);
+    scrollBottom();
+    const check = setInterval(() => { if (gameId !== myGameId) { clearInterval(check); clearTimeout(timer); if (div.parentNode) div.parentNode.removeChild(div); resolve(); } }, 80);
+    const timer = setTimeout(() => { clearInterval(check); if (div.parentNode) div.parentNode.removeChild(div); resolve(); }, duration);
+  });
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function scrollBottom() {
+  requestAnimationFrame(() => {
+    chat.scrollTop = chat.scrollHeight;
+  });
+}
+
+// ═══════════════════════════════════════
+// GAME ENGINE
+// ═══════════════════════════════════════
+let currentChapter = 'prologue';
+let msgIndex = 0;
+let isPlaying = false;
+let chapterScore = 0;
+let finalScores = [];
+let finalSkipped = 0;
+let gameId = 0; // incremented on each start; playChapter aborts if mismatched
+
+async function playChapter(chapterName) {
+  if (isPlaying) return;
+  const myGameId = gameId;
+  isPlaying = true;
+  currentChapter = chapterName;
+  msgIndex = 0;
+
+  const messages = script[chapterName];
+  if (!messages) { isPlaying = false; return; }
+
+  for (msgIndex = 0; msgIndex < messages.length; msgIndex++) {
+    if (gameId !== myGameId) { isPlaying = false; return; }
+    const msg = messages[msgIndex];
+    if (msg.t === 'msg') {
+      // Show typing indicator for longer messages
+      if (msg.m.length > 15 && Math.random() < 0.5) {
+        await showTyping(msg.s, 500 + Math.random() * 800);
+      }
+      addMessage(msg.s, msg.m);
+      // Varied delay: short messages faster, random variation, occasional longer pauses
+      let delay = 400 + msg.m.length * 20 + Math.random() * 600;
+      if (Math.random() < 0.15) delay += 800; // occasional longer pause
+      await sleep(delay);
+    } else if (msg.t === 'sys') {
+      if (msg.c.startsWith('━━━') || msg.c.startsWith('──')) {
+        const clean = msg.c.replace(/^[━─]{2,}\s*/, '').replace(/\s*[━─]{2,}$/, '');
+        addChapterTitle(clean);
+      } else if (msg.c.includes('\n') && msg.c.length > 30) {
+        addSysBox(msg.c);
+      } else {
+        addSysMsg(msg.c);
+      }
+      await sleep(500);
+    } else if (msg.t === 'skill') {
+      addSkillCard(msg.c);
+      await sleep(800);
+    } else if (msg.t === 'info') {
+      addInfoCard(msg.c);
+      await sleep(600);
+    } else if (msg.t === 'choice') {
+      // Show choices, wait for user
+      const result = await showChoices(msg);
+      if (result === null || gameId !== myGameId) { isPlaying = false; return; }
+      // Show user's message, then pause before group responds
+      addSelfMessage(result);
+      await sleep(800 + Math.random() * 1000);
+      state.choices.push({ chapter: chapterName, choice: result });
+      if (result && msg.opts) {
+        const opt = msg.opts.find(o => o.label === result);
+        if (opt) {
+          if (opt.score) {
+            state.score += opt.score;
+            chapterScore += opt.score;
+          }
+          if (opt.exp) state.exposure += opt.exp;
+          if (opt.branch) {
+            await playBranch(opt.branch);
+          }
+        }
+      }
+    } else if (msg.t === 'minigame') {
+      await showMiniGame();
+    } else if (msg.t === 'final_choice') {
+      const result = await showFinalChoice(msg);
+      if (result === null || gameId !== myGameId) { isPlaying = false; return; }
+      if (result === 'skip') {
+        finalSkipped++;
+      } else if (result) {
+        const opt = msg.opts.find(o => o.label === result);
+        if (opt) {
+          finalScores.push(opt.score);
+          state.score += opt.score;
+          addSelfMessage(result);
+          await sleep(800 + Math.random() * 1000);
+        }
+      }
+    }
+  }
+  isPlaying = false;
+}
+
+async function playBranch(branchName) {
+  const messages = script[branchName];
+  if (!messages) return;
+  const myGameId = gameId;
+  for (const msg of messages) {
+    if (gameId !== myGameId) return;
+    if (msg.t === 'msg') {
+      addMessage(msg.s, msg.m);
+      await sleep(300 + msg.m.length * 20 + Math.random() * 500);
+    } else if (msg.t === 'sys') {
+      if (msg.c.startsWith('━━━') || msg.c.startsWith('──')) {
+        const clean = msg.c.replace(/^[━─]{2,}\s*/, '').replace(/\s*[━─]{2,}$/, '');
+        addChapterTitle(clean);
+      } else if (msg.c.includes('\n') && msg.c.length > 30) {
+        addSysBox(msg.c);
+      } else {
+        addSysMsg(msg.c);
+      }
+      await sleep(500);
+    } else if (msg.t === 'skill') {
+      addSkillCard(msg.c);
+      await sleep(800);
+    } else if (msg.t === 'info') {
+      addInfoCard(msg.c);
+      await sleep(600);
+    } else if (msg.t === 'choice') {
+      const result = await showChoices(msg);
+      if (result === null) return;
+      addSelfMessage(result);
+      await sleep(800 + Math.random() * 1000);
+      state.choices.push({ chapter: branchName, choice: result });
+      if (result && msg.opts) {
+        const opt = msg.opts.find(o => o.label === result);
+        if (opt) {
+          if (opt.score) state.score += opt.score;
+          if (opt.exp) state.exposure += opt.exp;
+          if (opt.branch) await playBranch(opt.branch);
+        }
+      }
+    }
+  }
+}
+
+function sleep(ms) {
+  const myGameId = gameId;
+  return new Promise(r => {
+    const check = setInterval(() => { if (gameId !== myGameId) { clearInterval(check); r(); } }, 80);
+    setTimeout(() => { clearInterval(check); r(); }, ms);
+  });
+}
+
+// ═══════════════════════════════════════
+// CHOICE HANDLERS
+// ═══════════════════════════════════════
+let choiceResolve = null;
+
+function showChoices(msg) {
+  return new Promise(resolve => {
+    choiceResolve = resolve;
+    choicesDiv.style.display = 'block';
+    chat.style.paddingBottom = '120px';
+    choicesDiv.innerHTML = '';
+    const label = document.createElement('div');
+    label.className = 'choice-label';
+    label.textContent = msg.prompt || '你：';
+    choicesDiv.appendChild(label);
+
+    msg.opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = opt.label.replace(/^[A-D]\s*/, '');
+      btn.onclick = () => {
+        choicesDiv.style.display = 'none';
+        chat.style.paddingBottom = '';
+        resolve(opt.label);
+      };
+      choicesDiv.appendChild(btn);
+    });
+    scrollBottom();
+  });
+}
+
+function showFinalChoice(msg) {
+  return new Promise(resolve => {
+    choiceResolve = resolve;
+    choicesDiv.style.display = 'block';
+    chat.style.paddingBottom = '120px';
+    choicesDiv.innerHTML = '';
+    const label = document.createElement('div');
+    label.className = 'choice-label';
+    label.textContent = '要发言吗？';
+    choicesDiv.appendChild(label);
+
+    const speakLabel = document.createElement('div');
+    speakLabel.className = 'choice-label';
+    speakLabel.style.marginTop = '4px';
+    speakLabel.textContent = '发言：';
+    choicesDiv.appendChild(speakLabel);
+
+    msg.opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = opt.label.replace(/^[A-D]\s*/, '');
+      btn.onclick = () => {
+        choicesDiv.style.display = 'none';
+        chat.style.paddingBottom = '';
+        resolve(opt.label);
+      };
+      choicesDiv.appendChild(btn);
+    });
+
+    const skipBtn = document.createElement('button');
+    skipBtn.className = 'choice-btn danger';
+    skipBtn.textContent = '继续潜水';
+    skipBtn.onclick = () => {
+      choicesDiv.style.display = 'none';
+      chat.style.paddingBottom = '';
+      resolve('skip');
+    };
+    choicesDiv.appendChild(skipBtn);
+
+    choicesDiv.scrollIntoView({ behavior: 'smooth' });
+  });
+}
+
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// MINI-GAME: OFFSIDE — 三步学会越位
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// MINI-GAME: OFFSIDE
+// ═══════════════════════════════════════
+// Helpers
+function mgField(inner) { return '<div class="field">'+inner+'</div>'; }
+function mgP(cls,left,top,text){ return '<div class="p '+cls+'" style="left:'+left+'%;top:'+top+'%">'+text+'</div>'; }
+function mgLine(left){ return '<div class="line-yellow" style="left:'+left+'%"></div>'; }
+function mgBall(left,top){ return '<div class="ball" style="left:'+left+'%;top:'+top+'%"></div>'; }
+
+function showMiniGame() {
+  return new Promise(resolve => {
+    const div = document.createElement('div');
+    div.className = 'minigame';
+    chat.appendChild(div);
+    scrollBottom();
+    step1(div, resolve);
+  });
+}
+
+// ── STEP 1: 认识越位线 ──
+function step1(ct, resolve) {
+  ct.innerHTML = `
+    <div class="mg-step">第 1 步 / 3</div>
+    <div class="mg-title">什么是越位线？</div>
+    <div class="mg-sub">进攻方向 → 球门在右边，<b>倒数第二名防守球员</b>画一条线，就是越位线</div>
+    ${mgField(`
+      <div class="grass-stripe" style="top:20%"></div>
+      <div class="grass-stripe" style="top:80%"></div>
+      ${mgP('gk',88,52,'门将')}
+      ${mgP('def',50,35,'后卫')}
+      ${mgP('def',58,50,'后卫')}
+      ${mgLine(58)}
+      <div style="position:absolute;left:57%;top:5%;color:#ff0;font-size:12px;font-weight:700;z-index:6;text-shadow:0 0 4px rgba(0,0,0,0.8);">越位线</div>
+      ${mgP('atk',70,52,'接球')}
+      <div style="position:absolute;left:70%;top:68%;color:#ff0;font-size:11px;font-weight:700;z-index:6;text-shadow:0 0 4px rgba(0,0,0,0.8);">❌ 越位</div>
+      ${mgP('pas',24,52,'传球')}
+      ${mgBall(30,52)}
+      <div style="position:absolute;left:38%;top:40%;color:#fff;font-size:11px;font-weight:600;z-index:6;text-shadow:0 0 3px rgba(0,0,0,0.8);">传球⚽→</div>
+    `)}
+    <div class="field-labels"><span>传球者</span><span>后卫<br>(防守方)</span><span>越位线</span><span>接球者<br>(进攻方)</span><span>门将</span></div>
+    <div style="text-align:center;margin-top:8px;font-size:13px;color:#555;line-height:1.6;">
+      结论：接球者站在<b style="color:#e74c3c;">越位线前面</b>等球 →<b style="color:#e74c3c;">越位犯规</b>
+    </div>
+    <button class="mg-btn blue" style="width:100%;margin-top:8px;">我知道了，继续</button>
+  `;
+  ct.querySelector('.mg-btn').onclick = () => step2(ct, resolve);
+  scrollBottom();
+}
+
+// ── STEP 2: 三题判断 ──
+function step2(ct, resolve) {
+  // Each scenario: { attackerLeft%, lineLeft%, answer, explain }
+  const scenes = [
+    { al:72, ll:60, ans:'off', exp:'接球者远远超过越位线，明显越位犯规。' },
+    { al:62, ll:60, ans:'off', exp:'接球者脚尖刚刚超过越位线。VAR画线也会判越位，差几厘米也算。' },
+    { al:50, ll:60, ans:'on',  exp:'接球者在越位线后面。传球后他再跑过去接球，完全合法！' },
+  ];
+  let idx = 0;
+  show();
+
+  function show() {
+    const s = scenes[idx];
+    ct.innerHTML = `
+      <div class="mg-step">第 2 步 / 3 — 场景 ${idx+1}/3</div>
+      <div class="mg-title">这是越位吗？</div>
+      <div class="mg-sub">传球瞬间 ←⚽—— 请看接球者的位置</div>
+      ${mgField(`
+        <div class="grass-stripe" style="top:20%"></div>
+        <div class="grass-stripe" style="top:80%"></div>
+        ${mgP('gk',90,52,'门将')}
+        ${mgP('def',52,35,'后卫')}
+        ${mgP('def',s.ll,52,'后卫')}
+        ${mgLine(s.ll)}
+        ${mgP('atk',s.al,52,'接球')}
+        ${mgP('pas',22,52,'传球')}
+        ${mgBall(28,52)}
+      `)}
+      <div class="field-labels"><span>传球</span><span>后卫</span><span>越位线</span><span>接球者</span><span>门将</span></div>
+      <div class="mg-buttons">
+        <button class="mg-btn red">🚫 越位</button>
+        <button class="mg-btn green">✅ 不越位</button>
+      </div>
+    `;
+    ct.querySelector('.mg-btn.red').onclick = () => judge('off');
+    ct.querySelector('.mg-btn.green').onclick = () => judge('on');
+    scrollBottom();
+  }
+
+  function judge(choice) {
+    const s = scenes[idx];
+    const ok = choice === s.ans;
+    ct.innerHTML = `
+      <div class="mg-step">第 2 步 / 3 — 场景 ${idx+1}/3</div>
+      <div class="mg-title">这是越位吗？</div>
+      ${mgField(`
+        <div class="grass-stripe" style="top:20%"></div><div class="grass-stripe" style="top:80%"></div>
+        ${mgP('gk',90,52,'门将')}${mgP('def',52,35,'后卫')}${mgP('def',s.ll,52,'后卫')}
+        ${mgLine(s.ll)}${mgP('atk',s.al,52,(ok?'✅':'❌'))}${mgP('pas',22,52,'传球')}${mgBall(28,52)}
+      `)}
+      <div class="mg-feedback ${ok?'right':'wrong'}">${ok?'✅ 判断正确！':'❌ 判断错误'}</div>
+      <div style="text-align:center;font-size:13px;color:#666;margin-top:6px;">${s.exp}</div>
+      <button class="mg-btn blue" style="width:100%;margin-top:10px;">${idx<2?'下一题':'完成学习'}</button>
+    `;
+    ct.querySelector('.mg-btn').onclick = () => { idx++; if(idx<3) show(); else step3(ct,resolve); };
+    scrollBottom();
+  }
+}
+
+// ── STEP 3: 食堂理论 ──
+function step3(ct, resolve) {
+  ct.innerHTML = `
+    <div class="mg-step">第 3 步 / 3</div>
+    <div class="mg-title">🍚 食堂打饭理论</div>
+    <div class="mg-sub">一个生活场景，永远记住越位</div>
+    <div class="canteen">
+      <p>你和室友去<b>食堂打饭</b>，室友排在队伍里。</p>
+      <p style="margin-top:4px;">结果你<b>越过队伍直接冲到阿姨面前</b>——<br>室友还没排到，你先打好了饭。</p>
+      <p style="margin-top:8px;color:#e74c3c;font-weight:600;">🚫 这就是越位！</p>
+      <p style="margin-top:2px;font-size:13px;color:#888;">传球瞬间 = 室友还在排队<br>你冲到线前面接球 = 插队打饭</p>
+      <p style="margin-top:8px;color:#27ae60;font-weight:600;">✅ 不越位 = 你排在室友后面，轮到你再打饭</p>
+      <p style="margin-top:2px;font-size:13px;color:#888;">传球时你在越位线后面 → 球传出来后再去接 → 合法！</p>
+    </div>
+    <button class="mg-btn gold" style="width:100%;margin-top:12px;">🎉 我学会了越位！</button>
+  `;
+  ct.querySelector('.mg-btn').onclick = () => {
+    ct.innerHTML = '<div class="skill-card"><div class="check">🏅</div>🎉 你学会了越位！</div>';
+    scrollBottom();
+    setTimeout(resolve, 800);
+  };
+  scrollBottom();
+}
+
+// ═══════════════════════════════════════
+// RESULT PAGE
+// ═══════════════════════════════════════
+function showResult() {
+  // Calculate final scores
+  const ch1Score = state.choices.filter(c => c.chapter === 'ch1').length > 0 ? 5 : 0;
+  const finalAvg = finalScores.length > 0
+    ? finalScores.reduce((a,b)=>a+b,0) / finalScores.length
+    : 0;
+  const participated = finalScores.length + finalSkipped > 0
+    ? finalScores.length / (finalScores.length + finalSkipped)
+    : 0;
+
+  // Base score from chapters + final test
+  let rawScore = state.score;
+  let maxPossible = 5 + 5 + 5 + 8 + 8 + 8 + 8 + 10 + 10 + 10 + 10;
+  let percentage = Math.min(100, Math.max(0, Math.round((rawScore / Math.max(1, maxPossible)) * 100)));
+
+  // Adjust based on final test participation
+  percentage = Math.min(100, percentage + Math.round(participated * 10));
+
+  // Check easter eggs
+  const allWrong = state.choices.filter(c => c.choice && c.choice.includes('A')).length >= 3 && chapterScore <= 5;
+  const allRight = chapterScore >= 30 && finalAvg >= 8;
+  const allSilent = finalScores.length === 0;
+
+  let level, title, desc, eval_;
+  if (percentage <= 19) {
+    level = 1; title = 'Lv.1 路人';
+    desc = '你基本上还处于"足球是什么"的阶段。\n但至少你已经进了群，迈出了第一步。';
+    eval_ = '"这人谁？"\n"好像是被拉进来的"\n"没事，慢慢学"';
+  } else if (percentage <= 39) {
+    level = 2; title = 'Lv.2 跟风观众';
+    desc = '你已经知道世界杯是个比赛了。\n就是经常在群里说错话。';
+    eval_ = '"这个发言有点东西（指奇怪的东西）"\n"要不你先潜水看看？"';
+  } else if (percentage <= 59) {
+    level = 3; title = 'Lv.3 伪球迷';
+    desc = '基础知识已经掌握。\n但细节容易露馅。\n需要继续潜伏学习。';
+    eval_ = '"还行，不太像新手"\n"偶尔会问傻问题，但整体还行"';
+  } else if (percentage <= 79) {
+    level = 5; title = 'Lv.5 合格观众';
+    desc = '能独立看懂比赛。\n能在群里自如发言。\n一般场合不会暴露。';
+    eval_ = '"这个家人是懂球的"\n"发言靠谱"\n"可以一起看球"';
+  } else if (percentage <= 94) {
+    level = 7; title = 'Lv.7 懂哥预备役';
+    desc = '不仅能看懂，还能给别人讲。\n群聊存在感强，偶尔输出知识。\n距离懂哥只差一个博士学位。';
+    eval_ = '"你是不是偷偷研究了"\n"越来越懂了"\n"再过两年你就是新懂哥"';
+  } else {
+    level = 10; title = 'Lv.10 世界杯传教士';
+    desc = '你已经不是在看球。\n你是在传播世界杯的信仰。\n你拉的每个人都会变成球迷。';
+    eval_ = '"你是不是国际足联的人"\n"这个群靠你维持活跃度"\n"卧底？你是来当群主的吧"';
+  }
+
+  // Easter egg overrides
+  let easterEgg = '';
+  if (allSilent) {
+    easterEgg = '🏅 隐藏成就：潜行之王（全程未发言但完成了所有阅读）';
+  } else if (allRight) {
+    easterEgg = '🏅 隐藏成就：卧底教授（全程零失误，群友怀疑你是退役球员）';
+  } else if (allWrong) {
+    easterEgg = '🏅 隐藏成就：最诚实新手（每一个坑都踩了，但你很真实）';
+  }
+
+  resultDiv.className = 'result-page show';
+  resultDiv.innerHTML = `
+    <div class="r-header">⚽ 观赛群卧底计划<br>结业报告</div>
+    <div style="text-align:center;font-size:13px;color:#888;">${escapeHtml(state.username)}</div>
+    <div class="r-bar-outer"><div class="r-bar-inner" id="rbar" style="width:0%"></div></div>
+    <div class="r-percent" id="rpct">0%</div>
+    <div style="text-align:center;font-size:12px;color:#888;">懂球浓度</div>
+    <div class="r-badge" style="margin-top:16px;">${title}</div>
+    <div class="r-desc">${desc.replace(/\n/g,'<br>')}</div>
+    <div class="r-eval"><b>群友评价：</b><br>${eval_.replace(/\n/g,'<br>')}</div>
+    ${easterEgg ? `<div class="skill-card">${easterEgg}</div>` : ''}
+    <div class="r-skills"><b>已获得技能：</b><br>✓ 国家队与俱乐部<br>✓ 世界杯的重要性<br>✓ 观赛视角<br>✓ 越位<br>✓ 群聊生存术</div>
+    <div style="text-align:center;font-size:14px;margin:12px 0;">卧底成功率：<b>${percentage}%</b></div>
+    <button class="r-btn" style="background:#333;" onclick="restartGame()">再来一次</button>
+  `;
+
+  // Animate
+  setTimeout(() => {
+    document.getElementById('rbar').style.width = percentage + '%';
+    animateNumber('rpct', percentage);
+  }, 300);
+}
+
+function animateNumber(id, target) {
+  const el = document.getElementById(id);
+  let cur = 0;
+  const step = Math.max(1, Math.floor(target / 40));
+  const timer = setInterval(() => {
+    cur = Math.min(target, cur + step);
+    el.textContent = cur + '%';
+    if (cur >= target) clearInterval(timer);
+  }, 30);
+}
+
+function restartGame() {
+  gameId++; // cancel any running game
+  isPlaying = false;
+  if (choiceResolve) { choiceResolve(null); choiceResolve = null; }
+  state = {
+    username: state.username,
+    chapter: 'prologue',
+    msgIdx: 0,
+    score: 0,
+    totalPossible: 0,
+    choices: [],
+    exposure: 0,
+    chapterMsgCount: 0,
+    lastChoiceChapter: null,
+    lastChoiceMsgIdx: 0,
+    finalChoices: [],
+    finalSpoke: 0,
+    finalTotal: 0,
+    history: [],
+  };
+  chapterScore = 0;
+  finalScores = [];
+  finalSkipped = 0;
+  chat.innerHTML = '';
+  resultDiv.className = 'result-page';
+  resultDiv.innerHTML = '';
+  choicesDiv.style.display = 'none';
+  runGame();
+}
+
+// ═══════════════════════════════════════
+// CHAPTER SEQUENCING
+// ═══════════════════════════════════════
+async function runGame() {
+  const chapters = ['prologue','ch1','ch2','ch3','ch4','ch6_intro','ch6_s1','ch6_s2','ch6_s3','ch6_s4','final_intro','final_1','final_2','final_3','final_4','final_5'];
+  for (const ch of chapters) {
+    await playChapter(ch);
+  }
+
+  // Show result
+  await sleep(500);
+  addSysMsg('━━━━━━━━━━━━━━━━━━');
+  addSysMsg('测试结束');
+  addSysMsg('正在计算你的');
+  addSysMsg('卧底成功率……');
+  await sleep(1500);
+  showResult();
+}
+
+// ═══════════════════════════════════════
+// START
+// ═══════════════════════════════════════
+function toggleMenu() {
+  const dd = document.getElementById('menuDropdown');
+  dd.classList.toggle('show');
+  // Close on outside click
+  if (dd.classList.contains('show')) {
+    setTimeout(() => {
+      document.addEventListener('click', closeMenu);
+    }, 0);
+  }
+}
+function closeMenu(e) {
+  const menu = document.getElementById('menuBtn');
+  if (!menu.contains(e.target)) {
+    document.getElementById('menuDropdown').classList.remove('show');
+    document.removeEventListener('click', closeMenu);
+  }
+}
+function startFullGame() {
+  document.getElementById('menuDropdown').classList.remove('show');
+  document.removeEventListener('click', closeMenu);
+  gameId++; // cancel any running game
+  document.getElementById('nameOverlay').style.display = 'flex';
+}
+function startFinalTest() {
+  document.getElementById('menuDropdown').classList.remove('show');
+  document.removeEventListener('click', closeMenu);
+  const input = document.getElementById('usernameInput');
+  const name = input.value.trim() || '世界杯新人';
+  state.username = name;
+  gameId++; // cancel any running game
+  isPlaying = false;
+  if (choiceResolve) { choiceResolve(null); choiceResolve = null; }
+  state = { username: name, chapter: 'final_intro', msgIdx: 0, score: 0, totalPossible: 0, choices: [], exposure: 0, chapterMsgCount: 0, lastChoiceChapter: null, lastChoiceMsgIdx: 0, finalChoices: [], finalSpoke: 0, finalTotal: 0, history: [] };
+  chapterScore = 0; finalScores = []; finalSkipped = 0;
+  chat.innerHTML = '';
+  resultDiv.className = 'result-page';
+  resultDiv.innerHTML = '';
+  choicesDiv.style.display = 'none';
+  document.getElementById('nameOverlay').style.display = 'none';
+  setTimeout(() => jumpToFinal(), 150);
+}
+
+async function jumpToFinal() {
+  if (isPlaying) return;
+  const chapters = ['final_intro','final_1','final_2','final_3','final_4','final_5'];
+  for (const ch of chapters) { await playChapter(ch); }
+  await sleep(500);
+  addSysMsg('━━━━━━━━━━━━━━━━━━');
+  addSysMsg('测试结束');
+  addSysMsg('正在计算你的');
+  addSysMsg('卧底成功率……');
+  await sleep(1500);
+  showResult();
+}
+
+function startGame() {
+  const input = document.getElementById('usernameInput');
+  const name = input.value.trim() || '世界杯新人';
+  state.username = name;
+  document.getElementById('nameOverlay').style.display = 'none';
+  gameId++;
+  setTimeout(() => runGame(), 150);
+}
+
+// Allow pressing Enter to start
+document.getElementById('usernameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+});
+</script>
+</body>
+</html>

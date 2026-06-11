@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>世界杯观赛群卧底计划</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #ededed;
+  display: flex; justify-content: center; align-items: center;
+}
+#phone {
+  width: 100%; max-width: 430px; height: 100vh; max-height: 932px;
+  background: #ededed;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+  box-shadow: 0 0 30px rgba(0,0,0,0.15);
+}
+
+/* 顶部标题栏 */
+#header {
+  background: #1a1a1a; color: #fff;
+  padding: 12px 16px; text-align: center;
+  font-size: 17px; font-weight: 600;
+  flex-shrink: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+}
+#header .back { font-size: 16px; color: #fff; cursor: pointer; padding: 4px 8px; }
+#header .title { flex: 1; text-align: center; }
+#header .members { font-size: 13px; color: #aaa; }
+#header .members span { font-size: 11px; color: #888; display: block; }
+
+/* 聊天区域 */
+#chat {
+  flex: 1; overflow-y: auto; padding: 10px 14px;
+  -webkit-overflow-scrolling: touch;
+  background: #ededed;
+  scroll-behavior: smooth;
+}
+#chat::-webkit-scrollbar { width: 0; }
+
+/* 消息气泡 */
+.msg { margin-bottom: 14px; display: flex; flex-direction: column; }
+.msg.other { align-items: flex-start; }
+.msg.self { align-items: flex-end; }
+.msg.system { align-items: center; margin: 16px 0; }
+.msg .sender { font-size: 11px; color: #888; margin-bottom: 2px; padding: 0 4px; }
+.msg .avatar-row { display: flex; align-items: flex-start; gap: 8px; }
+.msg.self .avatar-row { flex-direction: row-reverse; }
+.msg .avatar {
+  width: 36px; height: 36px; border-radius: 4px;
+  flex-shrink: 0; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: bold;
+}
+.msg .bubble {
+  max-width: 72%; padding: 10px 13px; border-radius: 6px;
+  font-size: 15px; line-height: 1.55; word-break: break-word;
+  position: relative;
+}
+.msg.other .bubble { background: #fff; color: #1a1a1a; }
+.msg.self .bubble { background: #95ec69; color: #1a1a1a; }
+.msg.system .bubble {
+  background: #dcdcdc; color: #666; font-size: 12px;
+  max-width: 85%; text-align: center; padding: 6px 12px;
+  border-radius: 4px; line-height: 1.6; white-space: pre-line;
+}
+.msg.system.highlight .bubble {
+  background: #1a1a1a; color: #f0c040; font-size: 13px;
+  border: 1px solid #333;
+}
+.msg .bubble .multi { margin-bottom: 4px; }
+.msg .bubble .multi:last-child { margin-bottom: 0; }
+
+/* 打字指示器 */
+.typing { display: flex; gap: 4px; padding: 8px 13px; }
+.typing span {
+  width: 7px; height: 7px; border-radius: 50%; background: #bbb;
+  animation: blink 1.4s infinite both;
+}
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+/* 选择按钮 */
+.choices-wrap {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 8px 0 16px; padding: 10px;
+  background: #f8f8f8; border-radius: 8px;
+  border: 1px dashed #ddd;
+}
+.choices-wrap .label {
+  font-size: 12px; color: #999; text-align: center; margin-bottom: 2px;
+}
+.choices-wrap .btn {
+  display: block; width: 100%; padding: 10px 14px;
+  border: 1px solid #ddd; border-radius: 6px;
+  background: #fff; font-size: 14px; color: #333;
+  text-align: left; cursor: pointer;
+  transition: all 0.15s;
+}
+.choices-wrap .btn:active { background: #95ec69; border-color: #7bc858; }
+
+/* 系统提示卡片 */
+.card {
+  background: #fff; border-radius: 10px; padding: 18px;
+  margin: 12px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  text-align: center;
+}
+.card h3 { font-size: 16px; margin-bottom: 8px; }
+.card p { font-size: 13px; color: #666; line-height: 1.6; }
+.card .big-btn {
+  display: inline-block; margin: 10px 6px 0;
+  padding: 10px 24px; border-radius: 20px;
+  font-size: 14px; cursor: pointer; border: none;
+  color: #fff; font-weight: 600;
+}
+.card .btn-accept { background: #07c160; }
+.card .btn-later { background: #ccc; color: #666; }
+
+/* 技能获取 */
+.skill-get {
+  text-align: center; padding: 10px; margin: 10px 0;
+  background: #fffbe6; border-radius: 8px;
+  font-size: 13px; color: #b8860b;
+}
+
+/* 小游戏覆盖层 */
+#minigame-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  display: none;
+}
+#minigame-overlay.active { display: flex; }
+#minigame-box {
+  background: #fff; border-radius: 12px; padding: 20px;
+  width: 90%; max-width: 380px; text-align: center;
+}
+#minigame-box h3 { font-size: 16px; margin-bottom: 4px; }
+#minigame-box .subtitle { font-size: 12px; color: #999; margin-bottom: 16px; }
+#field {
+  position: relative; width: 100%; height: 200px;
+  background: linear-gradient(to bottom, #4a9e4a 0%, #3d8b3d 30%, #357a35 50%, #3d8b3d 70%, #4a9e4a 100%);
+  border-radius: 8px; margin: 0 auto 12px;
+  overflow: hidden; touch-action: none;
+}
+#field .line {
+  position: absolute; left: 20px; right: 20px; border-top: 2px solid rgba(255,255,255,0.6);
+}
+#field .center-circle {
+  position: absolute; top: 50%; left: 50%; width: 60px; height: 60px;
+  border: 2px solid rgba(255,255,255,0.6); border-radius: 50%;
+  transform: translate(-50%,-50%);
+}
+#field .goal { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 28px; }
+#field .defender {
+  position: absolute; left: 45%; top: 50%; transform: translate(-50%,-50%);
+  font-size: 32px; z-index: 2; transition: none;
+}
+#field .forward {
+  position: absolute; left: 60%; top: 50%; transform: translate(-50%,-50%);
+  font-size: 32px; z-index: 3; cursor: grab; transition: none;
+  user-select: none; -webkit-user-select: none;
+}
+#field .forward:active { cursor: grabbing; }
+#field .ball {
+  position: absolute; left: 75%; top: 50%; transform: translate(-50%,-50%);
+  font-size: 18px; z-index: 1;
+}
+#field .offside-line {
+  position: absolute; left: 45%; top: 5%; bottom: 5%;
+  width: 2px; background: rgba(255,255,0,0.8); z-index: 5;
+  border-left: 2px dashed rgba(255,255,0,0.5);
+}
+#field .hint {
+  position: absolute; bottom: 6px; left: 10px; right: 10px;
+  font-size: 10px; color: rgba(255,255,255,0.8); text-align: center;
+}
+#offside-status {
+  font-size: 14px; font-weight: bold; margin: 8px 0; padding: 8px;
+  border-radius: 6px; transition: all 0.3s;
+}
+#offside-status.offside { background: #ffe0e0; color: #c00; }
+#offside-status.legal { background: #e0ffe0; color: #080; }
+#minigame-box .done-btn {
+  margin-top: 8px; padding: 10px 30px; border-radius: 20px;
+  background: #07c160; color: #fff; border: none; font-size: 15px;
+  cursor: pointer;
+}
+
+/* 结果页 */
+#result-page {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: #1a1a1a; z-index: 200; display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  color: #fff; padding: 24px; overflow-y: auto;
+}
+#result-page.active { display: flex; }
+#result-page .result-card {
+  background: #2a2a2a; border-radius: 12px; padding: 24px;
+  width: 100%; max-width: 360px; text-align: center;
+}
+#result-page h2 { font-size: 20px; margin-bottom: 16px; color: #f0c040; }
+#result-page .meter {
+  background: #444; border-radius: 10px; height: 20px; margin: 12px 0; overflow: hidden;
+}
+#result-page .meter-fill {
+  height: 100%; border-radius: 10px;
+  background: linear-gradient(90deg, #f0c040, #ff6b35);
+  transition: width 1s ease;
+}
+#result-page .level-badge {
+  display: inline-block; padding: 8px 24px; border: 2px solid #f0c040;
+  border-radius: 20px; font-size: 18px; font-weight: bold; margin: 8px 0;
+}
+#result-page .traits { font-size: 13px; color: #ccc; line-height: 1.8; margin: 8px 0; }
+#result-page .skills { font-size: 12px; color: #aaa; margin: 8px 0; }
+#result-page .eval { font-size: 12px; color: #999; font-style: italic; margin: 10px 0; }
+#result-page .actions { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+#result-page .actions button {
+  padding: 10px 20px; border-radius: 20px; border: none; font-size: 14px; cursor: pointer;
+}
+#result-page .btn-share { background: #07c160; color: #fff; }
+#result-page .btn-retry { background: #444; color: #fff; }
+
+/* 分享卡 */
+#share-card {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85); z-index: 300;
+  display: none; align-items: center; justify-content: center;
+}
+#share-card.active { display: flex; }
+#share-card .card-inner {
+  background: #fff; border-radius: 12px; padding: 20px;
+  width: 320px; text-align: center;
+}
+#share-card .card-inner h4 { font-size: 15px; margin-bottom: 12px; }
+#share-card .card-inner .mini-chat {
+  background: #ededed; border-radius: 8px; padding: 10px; text-align: left;
+  font-size: 12px; line-height: 1.6;
+}
+#share-card .card-inner .mini-msg { color: #888; font-size: 11px; }
+#share-card .card-inner .mini-sys {
+  background: #dcdcdc; padding: 8px; border-radius: 6px;
+  margin: 8px 0; text-align: center; font-size: 12px;
+}
+#share-card .close-btn {
+  margin-top: 12px; padding: 8px 20px; border-radius: 16px;
+  background: #07c160; color: #fff; border: none; cursor: pointer;
+}
+
+/* 知识卡片 */
+.knowledge-card {
+  background: #fff; border-left: 4px solid #f0c040;
+  margin: 8px 0; padding: 10px 12px; border-radius: 4px;
+  font-size: 13px; color: #555; line-height: 1.6;
+}
+.knowledge-card strong { color: #333; }
+
+/* 响应式 */
+@media (max-width: 430px) {
+  #phone { max-height: 100vh; box-shadow: none; border-radius: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="phone">
+  <!-- 顶部栏 -->
+  <div id="header">
+    <span class="back" onclick="location.reload()">←</span>
+    <span class="title">⚽ 2026世界杯观赛群<div class="members"><span>群聊成员 500人</span></div></span>
+  </div>
+
+  <!-- 聊天区域 -->
+  <div id="chat"></div>
+
+  <!-- 小游戏遮罩 -->
+  <div id="minigame-overlay">
+    <div id="minigame-box">
+      <h3>⚽ 越位判定 — 30秒速通</h3>
+      <div class="subtitle">拖动前锋到不同位置，看是不是越位</div>
+      <div id="field">
+        <div class="line" style="top:50%"></div>
+        <div class="center-circle"></div>
+        <div class="goal">🥅</div>
+        <div class="offside-line" id="offside-line" style="left:45%"></div>
+        <div class="defender" id="defender-icon">🛡️</div>
+        <div class="forward" id="forward-icon">🏃</div>
+        <div class="ball">⚽</div>
+        <div class="hint">← 拖动前锋左右移动 →</div>
+      </div>
+      <div id="offside-status" class="offside">
+        🚨 越位！站在防守球员前面接球 = 犯规
+      </div>
+      <button class="done-btn" id="offside-done" style="display:none" onclick="finishMinigame()">我学会了！</button>
+    </div>
+  </div>
+
+  <!-- 结果页 -->
+  <div id="result-page">
+    <div class="result-card" id="result-content"></div>
+  </div>
+
+  <!-- 分享卡 -->
+  <div id="share-card" onclick="this.classList.remove('active')">
+    <div class="card-inner" id="share-inner" onclick="event.stopPropagation()"></div>
+  </div>
+</div>
+
+<script>
+// ==================== 游戏引擎 ====================
+
+const chat = document.getElementById('chat');
+const header = document.getElementById('header');
+
+// 头像颜色
+const avatars = {
+  '战术级理解': { bg: '#4a6fa5', abbr: '战术' },
+  '剧本而已': { bg: '#8b5cf6', abbr: '剧本' },
+  '天台一位': { bg: '#e74c3c', abbr: '天台' },
+  '皇马名宿梅西': { bg: '#e67e22', abbr: '梅东' },
+  '踢球是不可能踢球的': { bg: '#2ecc71', abbr: '梗王' },
+  '绝不熬夜': { bg: '#34495e', abbr: '熬夜' },
+  '诸神黄昏养老院球迷': { bg: '#95a5a6', abbr: '养老' },
+  '这战术我看不懂': { bg: '#1abc9c', abbr: '战术' },
+  '全员鉴赏中': { bg: '#e91e90', abbr: '颜值' },
+  'xG高达0.03': { bg: '#00bcd4', abbr: '数据' },
+  '别剧透': { bg: '#ff9800', abbr: '社畜' },
+  '进球回放bot': { bg: '#607d8b', abbr: '回放' },
+};
+
+function avatarHTML(name) {
+  const a = avatars[name] || { bg: '#999', abbr: name.slice(0,2) };
+  return `<div class="avatar" style="background:${a.bg}">${a.abbr}</div>`;
+}
+
+// 游戏状态
+let state = {
+  score: 0,
+  maxScore: 0,
+  choices: [],        // 记录所有选择
+  chapterComplete: {}, // 已完成章节
+  offsideLearned: false,
+  speakingCount: 0,   // 终章发言次数
+};
+
+function scrollToBottom() {
+  setTimeout(() => {
+    chat.scrollTop = chat.scrollHeight;
+  }, 50);
+}
+
+// 添加一条消息
+function addMessage(type, sender, text, delay = 0) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = `msg ${type}`;
+
+      if (type === 'system') {
+        div.innerHTML = `<div class="bubble">${text}</div>`;
+      } else if (type === 'self') {
+        div.innerHTML = `
+          <div class="sender">你</div>
+          <div class="avatar-row">
+            <div class="avatar" style="background:#07c160;font-size:12px;">我</div>
+            <div class="bubble">${text}</div>
+          </div>`;
+      } else {
+        const lines = text.split('\n').map(l => `<div class="multi">${l}</div>`).join('');
+        div.innerHTML = `
+          <div class="sender">${sender}</div>
+          <div class="avatar-row">
+            ${avatarHTML(sender)}
+            <div class="bubble">${lines}</div>
+          </div>`;
+      }
+      chat.appendChild(div);
+      scrollToBottom();
+      resolve();
+    }, delay);
+  });
+}
+
+// 添加系统高亮卡片
+function addSystemCard(text) {
+  const div = document.createElement('div');
+  div.className = 'msg system highlight';
+  div.innerHTML = `<div class="bubble">${text}</div>`;
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+// 添加技能获取
+function addSkill(name) {
+  const div = document.createElement('div');
+  div.className = 'skill-get';
+  div.innerHTML = `📜 <b>获得技能</b><br>✓ ${name}`;
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+// 添加知识卡片
+function addKnowledgeCard(content) {
+  const div = document.createElement('div');
+  div.className = 'knowledge-card';
+  div.innerHTML = content;
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+// 显示打字指示器
+function showTyping(sender) {
+  const div = document.createElement('div');
+  div.className = 'msg other';
+  div.id = 'typing-indicator';
+  div.innerHTML = `
+    <div class="sender">${sender}</div>
+    <div class="avatar-row">
+      ${avatarHTML(sender)}
+      <div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>
+    </div>`;
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+// 显示选择按钮
+function showChoices(prompt, options) {
+  return new Promise(resolve => {
+    const div = document.createElement('div');
+    div.className = 'choices-wrap';
+    div.id = 'current-choices';
+    let html = `<div class="label">${prompt}</div>`;
+    options.forEach((opt, i) => {
+      html += `<button class="btn" data-idx="${i}">${opt.label}</button>`;
+    });
+    div.innerHTML = html;
+    chat.appendChild(div);
+    scrollToBottom();
+
+    div.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.idx);
+        div.querySelectorAll('.btn').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+        // 高亮选中
+        btn.style.background = '#95ec69';
+        btn.style.borderColor = '#7bc858';
+        resolve(idx);
+      });
+    });
+  });
+}
+
+function removeChoices() {
+  const el = document.getElementById('current-choices');
+  if (el) el.remove();
+}
+
+// 发送用户消息
+function sendUserMsg(text) {
+  const div = document.createElement('div');
+  div.className = 'msg self';
+  div.innerHTML = `
+    <div class="sender">你</div>
+    <div class="avatar-row">
+      <div class="avatar" style="background:#07c160;font-size:12px;">我</div>
+      <div class="bubble">${text}</div>
+    </div>`;
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+// 清除聊天
+function clearChat() {
+  chat.innerHTML = '';
+}
+
+// 章节标题
+function chapterTitle(text, subtitle = '') {
+  const div = document.createElement('div');
+  div.className = 'msg system highlight';
+  div.innerHTML = `<div class="bubble">${text}${subtitle ? '\n' + subtitle : ''}</div>`;
+  chat.appendChild(div);
+  scrollToBottom();
+}
+
+// ==================== 越位小游戏 ====================
+let minigameResolve = null;
+let offsideLearnedDone = false;
+
+function initMinigame() {
+  const forward = document.getElementById('forward-icon');
+  const defender = document.getElementById('defender-icon');
+  const offsideLine = document.getElementById('offside-line');
+  const status = document.getElementById('offside-status');
+  const doneBtn = document.getElementById('offside-done');
+  const field = document.getElementById('field');
+
+  const defenderLeft = 45; // 防守球员位置百分比
+  let forwardLeft = 60;
+  let hasBeenLegal = false;
+
+  function updateForward(x) {
+    forwardLeft = x;
+    forward.style.left = x + '%';
+    offsideLine.style.left = defenderLeft + '%';
+
+    if (forwardLeft > defenderLeft) {
+      status.className = 'offside';
+      status.innerHTML = '🚨 越位！<br><small>站在防守球员前面接球 = 犯规</small>';
+    } else {
+      status.className = 'legal';
+      status.innerHTML = '✅ 合法位置<br><small>和防守球员平齐或靠后 = 好球！</small>';
+      hasBeenLegal = true;
+    }
+
+    if (hasBeenLegal && forwardLeft <= defenderLeft) {
+      doneBtn.style.display = 'inline-block';
+    }
+  }
+
+  // 重置
+  forwardLeft = 60;
+  hasBeenLegal = false;
+  forward.style.left = '60%';
+  offsideLine.style.left = defenderLeft + '%';
+  status.className = 'offside';
+  status.innerHTML = '🚨 越位！<br><small>站在防守球员前面接球 = 犯规</small>';
+  doneBtn.style.display = 'none';
+
+  // 拖动事件
+  let dragging = false;
+
+  function getX(e) {
+    const rect = field.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return Math.max(5, Math.min(92, ((clientX - rect.left) / rect.width) * 100));
+  }
+
+  forward.addEventListener('touchstart', e => { e.preventDefault(); dragging = true; }, { passive: false });
+  forward.addEventListener('mousedown', e => { e.preventDefault(); dragging = true; });
+
+  field.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    e.preventDefault();
+    updateForward(getX(e));
+  }, { passive: false });
+
+  field.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    updateForward(getX(e));
+  });
+
+  const stopDrag = () => { dragging = false; };
+  field.addEventListener('touchend', stopDrag);
+  field.addEventListener('mouseup', stopDrag);
+  field.addEventListener('mouseleave', stopDrag);
+
+  // 点击字段也可移动
+  field.addEventListener('click', e => {
+    if (e.target === forward || e.target === defender) return;
+    updateForward(getX(e));
+  });
+}
+
+function startMinigame() {
+  return new Promise(resolve => {
+    minigameResolve = resolve;
+    document.getElementById('minigame-overlay').classList.add('active');
+    initMinigame();
+  });
+}
+
+function finishMinigame() {
+  document.getElementById('minigame-overlay').classList.remove('active');
+  state.offsideLearned = true;
+  if (minigameResolve) minigameResolve();
+}
+
+// ==================== 章节数据 ====================
+
+function getChoiceText(chapter, choiceIdx) {
+  const map = {
+    'ch1': [
+      '没区别啊，不都是踢球嘛',
+      '一个是国家队比赛，一个是俱乐部比赛',
+      '欧冠更厉害吧，毕竟俱乐部有钱'
+    ],
+    'ch2': [
+      '这么夸张？我以为就是个体育比赛',
+      '我懂了，就像春晚/超级碗那种全民事件对吧',
+      '四年一次确实挺珍贵的，错过等四年'
+    ],
+    'ch3': ['看热闹', '看明星', '看故事', '看战术'],
+    'scene1': [
+      '这个首发什么意思？完全看不懂',
+      '右边路替补确实有点悬，不过对面左后卫也不强',
+      '几点开始啊，我刚醒'
+    ],
+    'scene2': [
+      '这么无聊我不看了 睡觉去',
+      '虽然没进球但中场绞杀挺好看的',
+      '下半场肯定进球，这种场面一般都是剧本'
+    ],
+    'scene3': [
+      '假球吧？这肯定是假球！',
+      '世界杯真的是圆的一切皆有可能啊',
+      '弱队能守住吗，强队肯定要反扑了'
+    ],
+    'scene4': [
+      '裁判是不是收钱了？？？',
+      '哎，越位就是越位，虽然确实很可惜',
+      '这脚尖能看出来？VAR是不是太严格了'
+    ],
+    'final1': [
+      '法国踢巴西啊这都能忘',
+      '我也不知道，同问',
+      '不重要，看就完了'
+    ],
+    'final2': [
+      '齐达内98年拿冠军，06年退役，后来当教练。不过这是常识啦',
+      '我也不知道齐达内以前踢球的，长知识了',
+      '群梅西你认真的吗哈哈哈哈'
+    ],
+    'final3': [
+      '我押法国赢，姆巴佩这场状态好',
+      '不预测，看比赛就好',
+      '剧本哥谨慎，上次全错了'
+    ],
+    'final4': [
+      '姆巴佩10号，上一届决赛帽子戏法那场也是10号',
+      '没事群梅西，慢慢学。我也刚搞明白越位没多久',
+      '你们别欺负群梅西了hhh 至少他承认不知道'
+    ],
+    'final5': [
+      '开局高位逼抢很凶，法国队想抢开局',
+      '一起看吧！世界杯就是要一起看才过瘾',
+      '⚽'
+    ],
+  };
+  return map[chapter]?.[choiceIdx] || '';
+}
+
+function getChoiceScore(chapter, choiceIdx) {
+  const map = {
+    'ch1': [0, 2, 0],
+    'ch2': [1, 2, 1],
+    'ch3': [1, 1, 1, 1],
+    'scene1': [0, 3, 1],
+    'scene2': [-1, 3, 0],
+    'scene3': [-1, 3, 2],
+    'scene4': [-1, 3, 1],
+    'final1': [5, 0, 3],
+    'final2': [8, 2, 5],
+    'final3': [8, 3, 5],
+    'final4': [10, 6, 5],
+    'final5': [10, 5, 2],
+  };
+  return map[chapter]?.[choiceIdx] || 0;
+}
+
+function getChoiceMax(chapter) {
+  const map = {
+    'ch1': 2, 'ch2': 2, 'ch3': 1,
+    'scene1': 3, 'scene2': 3, 'scene3': 3, 'scene4': 3,
+    'final1': 5, 'final2': 8, 'final3': 8, 'final4': 10, 'final5': 10,
+  };
+  return map[chapter] || 0;
+}
+
+// ==================== 序章 ====================
+async function runPrologue() {
+  await addMessage('system', '', '你被 拉 进了 ⚽ 2026世界杯观赛群（499）', 300);
+
+  await addMessage('other', '战术级理解', '今晚这场很关键，关系到E组出线形势\n我说了三遍都没人听\n再讲一次：如果这场打平，下一场必须赢而且净胜球要+2，否则就要看隔壁脸色', 400);
+
+  await addMessage('other', '剧本而已', '我押3:1\n昨晚梦见比分了，信我', 300);
+
+  await addMessage('other', '天台一位', '3:1？那我反买一手\n剧本哥的梦，反向操作，别墅靠大海', 300);
+
+  await addMessage('other', '皇马名宿梅西', '梅西还踢吗\n他不是退国家队了吗', 300);
+
+  await addMessage('other', '踢球是不可能踢球的', '梅西，阿根廷那个？\n先告诉我阿根廷在哪个洲', 300);
+
+  await addMessage('other', '绝不熬夜', '几点开始\n别废话，就问几点', 200);
+
+  await addMessage('other', '诸神黄昏养老院球迷', '现在这届不行\n98年巴乔罚丢点球那个背影，你们看过没\n那才叫世界杯', 400);
+
+  await addMessage('other', '这战术我看不懂', '懂哥说得对，不过今晚大概率4-2-3-1双后腰\n右边路压不上去的话，得变阵3-4-3菱形', 300);
+
+  await addMessage('other', '踢球是不可能踢球的', '战术哥你等会儿\n比赛还没开始呢', 200);
+
+  await addMessage('other', '全员鉴赏中', '不管什么阵型，我就问一句\n首发帅不帅', 200);
+
+  await addMessage('other', '这战术我看不懂', '？？？', 100);
+
+  // 系统提示
+  await new Promise(r => setTimeout(r, 500));
+  addSystemCard(
+    `━━━━━━━━━━━━━━━━━━\n检测到你是世界杯新人。\n\n是否开启：\n\n  ⚽ 观赛群卧底计划\n\n  在群聊中学会世界杯\n  获得你的"懂球身份"\n━━━━━━━━━━━━━━━━━━`
+  );
+
+  const choice = await showChoices('🎮', [
+    { label: '✅ 接受任务' },
+    { label: '🤔 我再看看' },
+  ]);
+
+  if (choice === 0) {
+    removeChoices();
+    sendUserMsg('接受任务');
+    return true;
+  } else {
+    removeChoices();
+    sendUserMsg('我再看看');
+    await addMessage('other', '踢球是不可能踢球的', '来都来了\n不学两招再走？', 300);
+    // 递归重试
+    const retry = await showChoices('🎮', [{ label: '✅ 接受任务' }, { label: '🤔 我再看看' }]);
+    if (retry === 0) { removeChoices(); sendUserMsg('接受任务'); return true; }
+    removeChoices();
+    sendUserMsg('我再看看');
+    await addMessage('system', '', '任务已取消。刷新页面可重新开始。', 300);
+    return false;
+  }
+}
+
+// ==================== 第一章 ====================
+async function runChapter1() {
+  chapterTitle('━━━ 第一章：世界杯到底是什么 ━━━', '学习目标：国家队 vs 俱乐部');
+
+  await addMessage('other', '皇马名宿梅西', '兄弟们我问个事\n世界杯和欧冠到底有什么区别\n不都是踢球吗', 400);
+
+  await addMessage('other', '剧本而已', '欧冠年年有，世界杯四年一次\n你高考都没世界杯稀有', 300);
+
+  await addMessage('other', '诸神黄昏养老院球迷', '四年一次啊\n我这一生也就看了十几届\n从罗马里奥看到现在，世界杯比结婚纪念日还准时', 400);
+
+  await addMessage('other', 'xG高达0.03', '来，上数据\n欧冠决赛全球观众约4亿\n世界杯决赛全球观众约15亿\n3.75个欧冠叠在一起', 400);
+
+  await addMessage('other', '天台一位', '数据帝别叠了\n反正我世界杯输的是欧冠的3.75倍', 300);
+
+  await addMessage('other', '别剧透', '我们老板不知道世界杯是什么\n但他知道欧冠决赛第二天要开会\n这就是区别', 400);
+
+  await addMessage('other', '这战术我看不懂', '从纯竞技角度，世界杯是国家队，欧冠是俱乐部\n俱乐部队友天天训练有默契，国家队临时集训两周就要上场\n所以世界杯的战术含量其实……', 400);
+
+  await addMessage('other', '踢球是不可能踢球的', '就这么说吧\n一个代表你上班的公司，一个代表你的老家\n你细品', 400);
+
+  const choice = await showChoices('🎮 该你发言了', [
+    { label: 'A 没区别啊，不都是踢球嘛' },
+    { label: 'B 一个是国家队比赛，一个是俱乐部比赛' },
+    { label: 'C 欧冠更厉害吧，毕竟俱乐部有钱' },
+  ]);
+  state.choices.push({ chapter: 'ch1', choice });
+  state.score += getChoiceScore('ch1', choice);
+  state.maxScore += getChoiceMax('ch1');
+
+  const choiceTexts = ['没区别啊，不都是踢球嘛', '一个是国家队比赛，一个是俱乐部比赛', '欧冠更厉害吧，毕竟俱乐部有钱'];
+  sendUserMsg(choiceTexts[choice]);
+  removeChoices();
+
+  if (choice === 0) {
+    await addMessage('other', '皇马名宿梅西', '哈哈哈哈哈我也不知道', 300);
+    await addMessage('other', '踢球是不可能踢球的', '好，现在你是群宠了\n来人，上教程', 300);
+    await addMessage('other', '战术级理解', '世界杯 = 国家队之间的比赛\n欧冠 = 俱乐部之间的比赛\n打个比方：\n梅西在俱乐部踢球 → 那是欧冠\n梅西代表阿根廷踢球 → 那是世界杯\n世界杯四年一次，欧冠每年都有\n稀缺性决定含金量，不难理解吧', 600);
+    await addMessage('other', '皇马名宿梅西', '哦！所以我喜欢的是巴萨的梅西不是阿根廷的梅西\n好像哪里不对', 400);
+    await addMessage('other', '踢球是不可能踢球的', '梅西南宁的了属于是', 200);
+  } else if (choice === 1) {
+    await addMessage('other', '战术级理解', '对，一句话讲明白了', 200);
+    await addMessage('other', 'xG高达0.03', '精准概括，补一个冷知识\n世界杯冠军球队的球员，回国后的GDP贡献约等于一次小型经济刺激计划', 400);
+    await addMessage('other', '踢球是不可能踢球的', '已截图\n下次有人说不就是踢球，直接甩这张', 300);
+    await addMessage('other', '皇马名宿梅西', '所以我这个问题问得还挺有水平', 300);
+    await addMessage('other', '全员鉴赏中', '国家队球衣比俱乐部的好看\n这算不算区别', 300);
+  } else {
+    await addMessage('other', '踢球是不可能踢球的', '？你是用钱看球的吗', 200);
+    await addMessage('other', '战术级理解', '俱乐部确实有钱，能买最好的人\n但世界杯的意义不在这\n世界杯是国家荣誉\n你代表的是一个国家，不是一个商业品牌\n群友上数据', 500);
+    await addMessage('other', 'xG高达0.03', '1998年世界杯决赛法国对巴西\n法国国内收视率：93%\n相当于整个国家都在看\n哪个俱乐部比赛能有93%收视率？', 500);
+    await addMessage('other', '天台一位', '而且世界杯我输得更多\n参与的深度不一样', 300);
+    await addMessage('other', '踢球是不可能踢球的', '天台哥的角度永远如此刁钻', 200);
+  }
+
+  await new Promise(r => setTimeout(r, 300));
+  addSkill('国家队与俱乐部');
+}
+
+// ==================== 第二章 ====================
+async function runChapter2() {
+  chapterTitle('━━━ 第二章：为什么世界杯这么火 ━━━', '学习目标：国家荣誉感 · 全球关注度 · 四年的重量');
+
+  await addMessage('other', '皇马名宿梅西', '等等，我又有问题了\n不就是踢个球吗，为什么全世界都疯了', 400);
+
+  await addMessage('other', '踢球是不可能踢球的', '好问题\n你先回答我：为什么你高考那两天，你爸妈比你紧张', 400);
+
+  await addMessage('other', '别剧透', '我高考那年正好世界杯\n我爸说我考不上可以复读，世界杯四年后才有\n亲生的', 500);
+
+  await addMessage('other', '诸神黄昏养老院球迷', '四年啊，你想想这四年你能经历什么\n大学毕业、换三份工作、谈两次恋爱、搬两次家\n然后世界杯来了，你发现喜欢的球员老了四岁，你也老了四岁', 600);
+
+  await addMessage('other', '战术级理解', '世界杯承载的不只是足球\n2014年巴西世界杯，德国7:1巴西那场\n巴西全国放假半天，街上没人\n那一代巴西人的集体记忆，就是一个比分牌上的7:1', 600);
+
+  await addMessage('other', '剧本而已', '7:1那场我也预测反了\n为什么说也', 300);
+
+  await addMessage('other', '踢球是不可能踢球的', '剧本哥你真的，避开了所有正确答案\n反向欧皇', 300);
+
+  await addMessage('other', '这战术我看不懂', '从文化角度讲，世界杯是人类为数不多的同步事件\n同一时间全球十亿人看着同一个画面\n在碎片化时代，这种共同体验本身就是奇迹', 500);
+
+  await addMessage('other', '全员鉴赏中', '而且每届都有帅哥\n02年贝克汉姆那个莫西干头谁还记得\n全网都在模仿', 400);
+
+  await addMessage('other', 'xG高达0.03', '给你几个数字感受一下体量\n世界杯总观众 ≈ 全球人口的1/2\n世界杯月期间全球工作效率下降约13%\n决赛日，多个国家央行会预留流动性应对市场波动', 600);
+
+  await addMessage('other', '踢球是不可能踢球的', '翻译一下数据帝最后一句\n全世界的基金经理都在摸鱼看球\n一不小心股市就崩了', 400);
+
+  await addMessage('other', '别剧透', '工作效率下降13%？\n我们部门至少30%', 300);
+
+  const choice = await showChoices('🎮 该你发言了', [
+    { label: 'A 这么夸张？我以为就是个体育比赛' },
+    { label: 'B 我懂了，就像春晚/超级碗那种全民事件对吧' },
+    { label: 'C 四年一次确实挺珍贵的，错过等四年' },
+  ]);
+  state.choices.push({ chapter: 'ch2', choice });
+  state.score += getChoiceScore('ch2', choice);
+  state.maxScore += getChoiceMax('ch2');
+
+  const choiceTexts = ['这么夸张？我以为就是个体育比赛', '我懂了，就像春晚/超级碗那种全民事件对吧', '四年一次确实挺珍贵的，错过等四年'];
+  sendUserMsg(choiceTexts[choice]);
+  removeChoices();
+
+  if (choice === 0) {
+    await addMessage('other', '战术级理解', '不夸张\n2006年世界杯决赛，齐达内头顶马特拉齐\n那个画面后来出现在法国街头涂鸦、意大利矿泉水广告、一首法语说唱、一部法国电影、一个经济学论文的案例', 600);
+    await addMessage('other', '踢球是不可能踢球的', '一个体育比赛出圈到这种程度，只有世界杯吧\n比我在公司十年做的PPT都有影响力', 400);
+  } else if (choice === 1) {
+    await addMessage('other', '踢球是不可能踢球的', '对对对\n春晚每年都有，看的人越来越少\n世界杯四年才有，看的人越来越多\n春晚你看看人家', 400);
+    await addMessage('other', '诸神黄昏养老院球迷', '但有一点像\n不管你平时看不看，到了那个时间点，所有人都在看\n你不看，你就是局外人', 400);
+  } else {
+    await addMessage('other', 'xG高达0.03', '对，而且等四年是有代价的\n四年前和你一起看球的人，可能已经不在你身边了\n四年后，现在18岁的新星可能已经退了\n世界杯是时间的标尺', 600);
+    await addMessage('other', '别剧透', '别说了，破防了\n四年前我还是个实习生，现在头都快秃了', 400);
+  }
+
+  await new Promise(r => setTimeout(r, 300));
+  addSkill('世界杯的重要性');
+}
+
+// ==================== 第三章 ====================
+async function runChapter3() {
+  chapterTitle('━━━ 第三章：怎么看比赛 ━━━', '学习目标：找到自己看球的"切入点"');
+
+  await addMessage('other', '皇马名宿梅西', '说实话\n我看了半场，不知道在看啥', 400);
+
+  await addMessage('other', '踢球是不可能踢球的', '本届世界杯第一个诚实的人出现了', 300);
+
+  await addMessage('other', '战术级理解', '看球有很多种看法\n战术、技术、故事、氛围，看你喜欢什么', 400);
+
+  await addMessage('other', '这战术我看不懂', '看得懂战术的话，比赛就像下棋\n中场每一次站位调整，都是在抢夺空间', 400);
+
+  await addMessage('other', '踢球是不可能踢球的', '战术哥等等，我帮你翻译一下\n大意就是：看不懂的话，看个热闹也挺好', 300);
+
+  await addMessage('other', '剧本而已', '我是看我的钱在场上跑', 200);
+
+  await addMessage('other', '天台一位', '剧本哥今天你买了谁\n我先躲一下', 300);
+
+  await addMessage('other', '全员鉴赏中', '我是看脸的，对不起\n这场首发颜值真的不太行，我先撤了', 300);
+
+  await addMessage('other', '诸神黄昏养老院球迷', '年轻人，你认识所有球员吗\n不认识的话，假装在看也行，反正也没人拆穿你', 400);
+
+  await addMessage('other', '进球回放bot', '我一般等赛后看集锦\n90分钟浓缩成3分钟，全是高潮\n性价比最高', 400);
+
+  await addMessage('other', '战术级理解', '回放哥你可以退群了', 200);
+
+  const choice = await showChoices('🎮 你平时看球更喜欢：', [
+    { label: 'A 看热闹' },
+    { label: 'B 看明星' },
+    { label: 'C 看故事' },
+    { label: 'D 看战术' },
+  ]);
+  state.choices.push({ chapter: 'ch3', choice });
+  state.score += getChoiceScore('ch3', choice);
+  state.maxScore += getChoiceMax('ch3');
+
+  const choiceTexts = ['看热闹', '看明星', '看故事', '看战术'];
+  sendUserMsg(choiceTexts[choice]);
+  removeChoices();
+
+  const knowledgeCards = [
+    '<strong>📖 看热闹专属</strong><br>世界杯热闹在哪儿：<br>· 爆冷：强队被弱队干翻<br>· 绝杀：最后几分钟进球<br>· 冲突：场上打架永远比踢球好看<br>· 名场面：经典表情包诞生地<br><br>看热闹不需要懂战术，会喊卧槽就行。',
+    '<strong>📖 看明星专属</strong><br>2026世界杯看点：<br>· 老将最后一舞（梅西、C罗，诸神的黄昏）<br>· 新星首秀（亚马尔、贝林厄姆）<br>· 巨星交接（谁将成为下一个球王？）<br><br>看明星 = 看人的巅峰时刻。',
+    '<strong>📖 看故事专属</strong><br>世界杯四大故事线：<br>· 黑马：没人看好的球队一路杀进四强<br>· 宿敌：阿根廷vs英格兰、巴西vs阿根廷<br>· 复仇：四年前输了，四年后赢回来<br>· 圆梦：老将生涯最后一届<br><br>世界杯不需要剧本，生活就是最好的编剧。',
+    '<strong>📖 看战术专属</strong><br>新手战术入门：<br>· 控球打法：我拿着球不给你，急死你<br>· 防守反击：你来打我啊，我偷偷打你<br>· 高位逼抢：在你家门口抢你球<br>· 摆大巴：11个人堵门，你踢吧<br><br>战术的本质：用什么方式赢，都是有性格的。',
+  ];
+
+  if (choice === 0) {
+    await addMessage('other', '踢球是不可能踢球的', '看热闹才是真球迷\n进球了大喊，扑救了"卧槽"，踢飞了"哎呀"\n三件套拿捏了', 400);
+    await addMessage('other', '别剧透', '我就这样\n主打一个参与感', 200);
+    addKnowledgeCard(knowledgeCards[0]);
+  } else if (choice === 1) {
+    await addMessage('other', '全员鉴赏中', '！！\n我终于不是一个人了', 200);
+    await addMessage('other', '战术级理解', '看明星也没问题，世界杯历来是巨星舞台\n86年马拉多纳，98年齐达内，02年大罗，10年伊涅斯塔……\n每一届都会诞生一个新的神', 500);
+    addKnowledgeCard(knowledgeCards[1]);
+  } else if (choice === 2) {
+    await addMessage('other', '踢球是不可能踢球的', '哦？兄弟是来追剧的\n世界杯确实比网飞好看', 300);
+    await addMessage('other', '诸神黄昏养老院球迷', '我看了二十多年，说到底，最吸引人的永远是故事\n98年克罗地亚，一个建国才七年的国家，拿了季军\n14年梅西距离封神只差一步\n你说这是体育比赛？这明明是古希腊悲剧好嘛', 600);
+    addKnowledgeCard(knowledgeCards[2]);
+  } else {
+    await addMessage('other', '这战术我看不懂', '终于来了一个正常人', 200);
+    await addMessage('other', '战术级理解', '那我建议你先理解几个基本概念\n控球、反击、高位逼抢、低位防守\n足球就是22个人下的一盘快棋', 400);
+    await addMessage('other', '踢球是不可能踢球的', '翻译一下\n你马上就要变得跟我们一样无趣了\n看什么都想分析，一分析就吵起来', 400);
+    addKnowledgeCard(knowledgeCards[3]);
+  }
+
+  await new Promise(r => setTimeout(r, 300));
+  addSkill('观赛视角');
+}
+
+// ==================== 第四章：越位危机 ====================
+async function runChapter4() {
+  chapterTitle('━━━ 第四章：越位危机 ━━━', '学习目标：理解越位规则');
+
+  await addMessage('other', '皇马名宿梅西', '救命\n谁能用人类语言解释越位', 400);
+
+  await addMessage('other', '战术级理解', '越位（Offside）是指进攻方球员在传球瞬间，比倒数第二名防守球员更靠近对方球门线的位置，并且参与了进攻\n具体来说，根据国际足球理事会（IFAB）规则第11条……', 600);
+
+  await addMessage('other', '皇马名宿梅西', '第一句就读不下去了', 200);
+
+  await addMessage('other', '踢球是不可能踢球的', '没看懂', 100);
+  await addMessage('other', '剧本而已', '没看懂', 100);
+  await addMessage('other', '别剧透', '没看懂', 100);
+  await addMessage('other', '全员鉴赏中', '读了一半放弃了', 100);
+  await addMessage('other', '天台一位', '我只需要知道这球算不算就完了\n越位 = 我白激动了', 300);
+
+  await addMessage('other', '踢球是不可能踢球的', '@战术级理解 你这是在写论文吗\n顺便把裁判证考了吧', 300);
+
+  await addMessage('other', '战术级理解', '我已经尽量简化了……', 200);
+
+  await addMessage('other', '诸神黄昏养老院球迷', '我来试试\n你不能在队友传球的瞬间站在对方最后一个人后面等着接球\n简单说就是不能蹲坑', 400);
+
+  await addMessage('other', '皇马名宿梅西', '还是不太懂……', 200);
+
+  await addMessage('other', '踢球是不可能踢球的', '你想象一下\n你和你兄弟去食堂打饭\n你兄弟说"我去占位"\n结果你直接冲到打饭阿姨面前\n你兄弟还没排到队呢\n喊了你一声，你回头，饭已经打好了\n这就是越位', 600);
+
+  await addMessage('other', '皇马名宿梅西', '！！！\n好像懂了！但不确定', 300);
+
+  await addMessage('other', 'xG高达0.03', '食堂理论居然work了\n这值得一篇论文', 300);
+
+  // 小游戏
+  await new Promise(r => setTimeout(r, 500));
+  await startMinigame();
+
+  await addMessage('other', '皇马名宿梅西', '卧槽我终于懂了', 300);
+  await addMessage('other', '别剧透', '说实话我也懂了\n之前都是装的', 300);
+  await addMessage('other', '踢球是不可能踢球的', '恭喜群友集体脱盲', 200);
+  await addMessage('other', '战术级理解', '……早知道我就不写300字了', 200);
+
+  await addMessage('other', '皇马名宿梅西', '等等\n所以平时看球，进球了然后裁判画线吹掉\n那个就是越位？', 400);
+
+  await addMessage('other', '战术级理解', '对\nVAR画的那条线就是在判断传球瞬间接球的人有没有越位\n你看到画线就知道：哦，在查越位', 400);
+
+  await addMessage('other', '皇马名宿梅西', '那VAR到底是啥\n就是个回放吗', 300);
+
+  await addMessage('other', '战术级理解', 'Video Assistant Referee，视频助理裁判\n场上有争议的时候，场外的视频裁判组会看回放\n然后告诉主裁判刚才那球可能有问题\n主裁判跑到场边看屏幕，自己决定改不改判\n进球、点球、红牌、越位，这四种情况VAR都可以介入', 700);
+
+  await addMessage('other', '踢球是不可能踢球的', '说人话就是以前裁判一个人说了算，错了就错了\n现在有场外团队看回放帮他纠错\n但还是会吵起来，因为画线画到脚尖三厘米这种事永远有人不服', 500);
+
+  await addMessage('other', '剧本而已', '群梅西你已经可以出去跟人吹了\n越位嘛就是打饭插队，我太懂了～', 300);
+
+  await addMessage('other', '诸神黄昏养老院球迷', '你们算幸福的了\n以前没VAR的年代\n越不越位全看边裁眼神好不好\n那个冤案才叫多', 400);
+
+  await addMessage('other', '全员鉴赏中', '不管怎么说\n庆祝完再被吹掉\n对表情管理很不好！', 300);
+
+  await new Promise(r => setTimeout(r, 300));
+  addSkill('越位');
+}
+
+// ==================== 第六章：观赛群生存指南 ====================
+async function runChapter6() {
+  chapterTitle('━━━ 第六章：观赛群生存指南 ━━━', '学习目标：掌握"不露馅"的聊天技巧');
+
+  addSystemCard('⚽ 观赛群生存模拟\n\n以下将出现 4 个经典场景\n选对发言，不要暴露新手身份');
+
+  // 场景一
+  await runScene1();
+  // 场景二
+  await runScene2();
+  // 场景三
+  await runScene3();
+  // 场景四
+  await runScene4();
+
+  await new Promise(r => setTimeout(r, 300));
+  addSkill('群聊生存术');
+}
+
+async function runScene1() {
+  chapterTitle('场景一：比赛开始前', '');
+
+  await addMessage('other', '战术级理解', '首发出来了\n右边路果然是替补，看来主教练想下半场再发力', 400);
+  await addMessage('other', '剧本而已', '首发看完了，我赌2:0\n上半场1:0，下半场补一个', 300);
+  await addMessage('other', '这战术我看不懂', '4-3-3对4-2-3-1，中场三对二，理论上能控住球\n但右边路替补是个隐患，被针对打身后就麻烦了', 500);
+
+  const choice = await showChoices('🎮 比赛还没开始，群友都在讨论。你说：', [
+    { label: 'A 这个首发什么意思？完全看不懂' },
+    { label: 'B 右边路替补确实有点悬，不过对面左后卫也不强' },
+    { label: 'C 几点开始啊，我刚醒' },
+  ]);
+  state.choices.push({ chapter: 'scene1', choice });
+  state.score += getChoiceScore('scene1', choice);
+  state.maxScore += getChoiceMax('scene1');
+
+  const texts = ['这个首发什么意思？完全看不懂', '右边路替补确实有点悬，不过对面左后卫也不强', '几点开始啊，我刚醒'];
+  sendUserMsg(texts[choice]);
+  removeChoices();
+
+  if (choice === 0) {
+    await addMessage('other', '踢球是不可能踢球的', '哈哈哈哈哈诚实', 200);
+    await addMessage('other', '战术级理解', '那我简单说一下\n首发就是今天上场的11个人\n名单赛前一小时公布，所以现在大家在看部署', 400);
+    await addMessage('system', '', '⚠️ 暴露度 +10%（群友觉得你有点太诚实了）', 300);
+  } else if (choice === 1) {
+    await addMessage('other', '这战术我看不懂', '对吧！你也觉得右边路有问题\n我说了三场了，终于有人认同我', 300);
+    await addMessage('other', '战术级理解', '不过对面左后卫本赛季场均拦截只有1.2次\n替补也不一定会被打爆', 400);
+    await addMessage('other', '剧本而已', '你们分析这么多\n踢起来全不是那回事', 300);
+    await addMessage('system', '', '✅ 完美融入！群友觉得你懂行', 300);
+  } else {
+    await addMessage('other', '绝不熬夜', '凌晨3点\n刚醒是什么作息', 200);
+    await addMessage('other', '别剧透', '这有个同道中人\n我也是刚加班完准备看', 300);
+    await addMessage('system', '', '🤝 中立发言，不暴露但也没加分', 300);
+  }
+}
+
+async function runScene2() {
+  chapterTitle('场景二：比赛0:0，场面沉闷', '');
+
+  await addMessage('other', '皇马名宿梅西', '好无聊啊，怎么还不进球', 300);
+  await addMessage('other', '踢球是不可能踢球的', '0:0是足球比赛最美的比分\n每一分钟都在制造焦虑', 300);
+  await addMessage('other', '诸神黄昏养老院球迷', '1994年世界杯决赛也是0:0\n最后点球大战，巴乔一脚踢飞\n那场0:0比大部分有进球的比赛都好看', 500);
+  await addMessage('other', '天台一位', '我必须说一句\n0:0对我很不友好\n买了大球的表示很急', 300);
+
+  const choice = await showChoices('🎮 半场了还是0:0，群友开始聊。你说：', [
+    { label: 'A 这么无聊我不看了 睡觉去' },
+    { label: 'B 虽然没进球但中场绞杀挺好看的' },
+    { label: 'C 下半场肯定进球，这种场面一般都是剧本' },
+  ]);
+  state.choices.push({ chapter: 'scene2', choice });
+  state.score += getChoiceScore('scene2', choice);
+  state.maxScore += getChoiceMax('scene2');
+
+  const texts = ['这么无聊我不看了 睡觉去', '虽然没进球但中场绞杀挺好看的', '下半场肯定进球，这种场面一般都是剧本'];
+  sendUserMsg(texts[choice]);
+  removeChoices();
+
+  if (choice === 0) {
+    await addMessage('other', '绝不熬夜', '？？？\n3点的比赛你说不看了\n你对得起这个时间吗', 300);
+    await addMessage('other', '踢球是不可能踢球的', '这人刚才还在\n现在已经放弃了\n真的假的', 300);
+    await addMessage('system', '', '⚠️ 社死边缘', 300);
+  } else if (choice === 1) {
+    await addMessage('other', '这战术我看不懂', '！！\n你居然能看出中场绞杀\n你不是新人吧', 300);
+    await addMessage('other', '战术级理解', '确实，虽然没进球但战术博弈很精彩\n双方都在等对方先犯错', 400);
+    await addMessage('system', '', '✅ 高水平发言！群友对你的评价提升', 300);
+  } else {
+    await addMessage('other', '剧本而已', '兄弟你懂我\n足球是有剧本的\n下半场70分钟后必有一球', 300);
+    await addMessage('other', '天台一位', '你们这种肯定进球的自信到底哪来的\n上次也这么说，然后0:0结束，我亏了一个月工资', 400);
+    await addMessage('system', '', '😐 安全发言，但有点剧本化了', 300);
+  }
+}
+
+async function runScene3() {
+  chapterTitle('场景三：弱队领先强队', '');
+
+  await addMessage('other', '皇马名宿梅西', '？？？\n弱队怎么先进球了', 300);
+  await addMessage('other', '战术级理解', '这就是世界杯\n强队围攻半天没进球，弱队一个反击就进了', 400);
+  await addMessage('other', '剧本而已', '我tm预测的2:0强队赢\n现在1:0弱队领先\n我先缓缓', 300);
+  await addMessage('other', '天台一位', '天台一位不请自来\n弱队领先，我血压已经上来了', 300);
+  await addMessage('other', '诸神黄昏养老院球迷', '2002年揭幕战，世界杯+欧洲杯双料冠军法国队\n输给了第一次参加世界杯的塞内加尔\n世界杯没有所谓的谁应该赢', 500);
+
+  const choice = await showChoices('🎮 弱队居然领先了。你说：', [
+    { label: 'A 假球吧？这肯定是假球！' },
+    { label: 'B 世界杯真的是圆的一切皆有可能啊' },
+    { label: 'C 弱队能守住吗，强队肯定要反扑了' },
+  ]);
+  state.choices.push({ chapter: 'scene3', choice });
+  state.score += getChoiceScore('scene3', choice);
+  state.maxScore += getChoiceMax('scene3');
+
+  const texts = ['假球吧？这肯定是假球！', '世界杯真的是圆的一切皆有可能啊', '弱队能守住吗，强队肯定要反扑了'];
+  sendUserMsg(texts[choice]);
+  removeChoices();
+
+  if (choice === 0) {
+    await addMessage('other', '战术级理解', '不是所有爆冷都叫假球\n弱队能进世界杯的都不是真的弱', 300);
+    await addMessage('other', '踢球是不可能踢球的', '观赛群生存法则：永远不要说假球\n除非你想被懂哥教育十分钟', 300);
+    await addMessage('system', '', '⚠️⚠️ 重大暴露！触发群友教育模式', 300);
+  } else if (choice === 1) {
+    await addMessage('other', '踢球是不可能踢球的', '足球是圆的\n这句话是世界杯万能发言\n什么时候说都成立', 300);
+    await addMessage('other', '诸神黄昏养老院球迷', '"足球是圆的"是1954年德国队教练说的\n那年西德赢了当时无敌的匈牙利\n这句话用了70年了，还没过时', 500);
+    await addMessage('system', '', '✅ 经典发言，融入度提升', 300);
+  } else {
+    await addMessage('other', '这战术我看不懂', '看体能\n弱队70分钟后体力下滑会很明显\n强队及时换人冲击的话，大概率能扳平', 400);
+    await addMessage('other', '战术级理解', '世界杯换人名额比联赛多，强队后手优势很大', 300);
+    await addMessage('system', '', '✅ 自然的关注点，体现思考', 300);
+  }
+}
+
+async function runScene4() {
+  chapterTitle('场景四：进球被VAR吹越位', '');
+
+  await addMessage('other', '皇马名宿梅西', '？？？？？？\n为什么不算', 300);
+  await addMessage('other', '战术级理解', '越位，很明显\nVAR画线了，脚尖超了大概3厘米', 300);
+  await addMessage('other', '天台一位', '脚尖3厘米\n这就是现代足球\n血压已经上来了', 300);
+  await addMessage('other', '剧本而已', '我刚已经开始庆祝了\n然后裁判画了个框\n这种痛，难以形容', 400);
+  await addMessage('other', '踢球是不可能踢球的', 'VAR，科技改变足球\n以前靠裁判眼神，现在靠画线精度\n也不知道哪个更让人生气', 400);
+
+  const choice = await showChoices('🎮 进球被吹掉，群里炸了。你说：', [
+    { label: 'A 裁判是不是收钱了？？？' },
+    { label: 'B 哎，越位就是越位，虽然确实很可惜' },
+    { label: 'C 这脚尖能看出来？VAR是不是太严格了' },
+  ]);
+  state.choices.push({ chapter: 'scene4', choice });
+  state.score += getChoiceScore('scene4', choice);
+  state.maxScore += getChoiceMax('scene4');
+
+  const texts = ['裁判是不是收钱了？？？', '哎，越位就是越位，虽然确实很可惜', '这脚尖能看出来？VAR是不是太严格了'];
+  sendUserMsg(texts[choice]);
+  removeChoices();
+
+  if (choice === 0) {
+    await addMessage('other', '战术级理解', '哥们，这是越位\nVAR画线画得明明白白', 300);
+    await addMessage('other', '踢球是不可能踢球的', '观赛群生存法则：永远不要质疑裁判的职业道德\n除非你真的想被懂哥发300字VAR科普', 400);
+    await addMessage('other', '皇马名宿梅西', '哈哈哈哈，连我都知道要先看回放', 200);
+    await addMessage('system', '', '⚠️⚠️⚠️ 严重暴露！触发懂哥长篇教育', 300);
+  } else if (choice === 1) {
+    await addMessage('other', '诸神黄昏养老院球迷', '理性\n虽然可惜，但规则就是规则', 300);
+    await addMessage('other', '这战术我看不懂', '越位规则保护的是防守方的公平性\n没有越位的话，前锋可以直接站在门将旁边等着接球\n那足球就没法看了', 400);
+    await addMessage('system', '', '✅ 理性发言，体现学习成果', 300);
+  } else {
+    await addMessage('other', 'xG高达0.03', 'VAR引入后，越位判罚准确率从92%提升到98%\n代价是每次庆祝完都要等30秒\n人类情绪的代价', 400);
+    await addMessage('other', '踢球是不可能踢球的', '数据帝今天说话怎么有哲学味了\n是不是喝了', 300);
+    await addMessage('system', '', '😐 安全发言，体现人文关怀', 300);
+  }
+}
+
+// ==================== 终章：卧底测试 ====================
+async function runFinalChapter() {
+  chapterTitle('━━━ 终极测试 ━━━', '连续群聊消息，选择时机发言\n目标：不要暴露你是新手');
+
+  const finalMsgs = [
+    { sender: '战术级理解', text: '今晚这场裁判是西班牙的' },
+    { sender: '剧本而已', text: '西班牙裁判？完了，偏哨预定' },
+    { sender: '踢球是不可能踢球的', text: '剧本哥已经提前给输球找理由了\n专业' },
+    { sender: '皇马名宿梅西', text: '今晚谁踢谁啊，我忘了' },
+    // 发言机会1
+    { type: 'speak', id: 'final1' },
+    { sender: '这战术我看不懂', text: '法国大概率4-3-3，格列兹曼回撤到中场\n巴西这边4-2-3-1，维尼修斯左边\n关键在中场人数优势' },
+    { sender: '踢球是不可能踢球的', text: '战术哥又开始了\n哥，比赛还没开始' },
+    { sender: '诸神黄昏养老院球迷', text: '法国踢巴西是有历史的\n98年决赛齐达内两个头球，法国封神\n06年又是齐达内助攻亨利绝杀巴西\n巴西世界杯上碰到法国队，心里有阴影' },
+    { sender: '皇马名宿梅西', text: '齐达内不是教练吗，怎么98年还踢球' },
+    { sender: '踢球是不可能踢球的', text: '群梅西我真的哭死\n这就是我们群的活宝' },
+    // 发言机会2
+    { type: 'speak', id: 'final2' },
+    { sender: '绝不熬夜', text: '几点开始！！！！！！！！！！！' },
+    { sender: '别剧透', text: '凌晨2点\n咖啡备好了\n明天还要上班，但无所谓，我会请假' },
+    { sender: '天台一位', text: '2点开始，我3点起床看结果\n反正前半小时也不会有进球' },
+    { sender: '剧本而已', text: '我押巴西2:1法国\n复仇之战' },
+    // 发言机会3
+    { type: 'speak', id: 'final3' },
+    { sender: '全员鉴赏中', text: '法国首发我看了\n这届颜值在线\n尤其是左边锋，我可以' },
+    { sender: '皇马名宿梅西', text: '左边锋是谁' },
+    { sender: '战术级理解', text: '姆巴佩\n你确定你是在看球' },
+    { sender: '皇马名宿梅西', text: '哦！他穿几号' },
+    { sender: '踢球是不可能踢球的', text: '群梅西\n姆巴佩穿10号，法国队10号\n下次别说自己是球迷了，说自己是路人' },
+    // 发言机会4
+    { type: 'speak', id: 'final4' },
+    { sender: '诸神黄昏养老院球迷', text: '说起来姆巴佩也28岁了\n这可能是他最后一届巅峰世界杯' },
+    { sender: '战术级理解', text: '28岁是黄金年龄\n不是最后一届' },
+    { sender: '诸神黄昏养老院球迷', text: '年轻人你不懂\n四年后的事谁说得准呢' },
+    { sender: '别剧透', text: '别说了\n四年前我还头发茂密\n现在……' },
+    { sender: '踢球是不可能踢球的', text: '世界杯就是人生的度量衡\n测的不是球技，是你的发量' },
+    { sender: '这战术我看不懂', text: '比赛马上开始了\n兄弟们看球' },
+    { sender: '绝不熬夜', text: '开！始！了！' },
+    { sender: '皇马名宿梅西', text: '第一分钟就好激烈\n虽然不知道在看啥但是很激动' },
+    // 发言机会5
+    { type: 'speak', id: 'final5' },
+  ];
+
+  for (const msg of finalMsgs) {
+    if (msg.type === 'speak') {
+      const opted = await showChoices('🎮 要发言吗？', [
+        { label: '💬 发言' },
+        { label: '🤫 继续潜水' },
+      ]);
+
+      if (opted === 0) {
+        removeChoices();
+        const choiceLabels = {
+          final1: ['A 法国踢巴西啊这都能忘', 'B 我也不知道，同问', 'C 不重要，看就完了'],
+          final2: ['A 齐达内98年拿冠军，06年退役，后来当教练', 'B 我也不知道齐达内以前踢球的', 'C 群梅西你认真的吗哈哈哈哈'],
+          final3: ['A 我押法国赢，姆巴佩这场状态好', 'B 不预测，看比赛就好', 'C 剧本哥谨慎，上次全错了'],
+          final4: ['A 姆巴佩10号，决赛帽子戏法也是10号', 'B 没事群梅西，慢慢学', 'C 你们别欺负群梅西了hhh'],
+          final5: ['A 开局高位逼抢很凶，法国队想抢开局', 'B 一起看吧！世界杯要一起看才过瘾', 'C ⚽'],
+        };
+        const subChoice = await showChoices('你说：', choiceLabels[msg.id].map(l => ({ label: l })));
+        state.choices.push({ chapter: msg.id, choice: subChoice });
+        state.score += getChoiceScore(msg.id, subChoice);
+        state.maxScore += getChoiceMax(msg.id);
+        state.speakingCount++;
+        sendUserMsg(getChoiceText(msg.id, subChoice));
+        removeChoices();
+      } else {
+        removeChoices();
+      }
+    } else {
+      await addMessage('other', msg.sender, msg.text, 250);
+    }
+  }
+}
+
+// ==================== 结果页 ====================
+function showResult() {
+  const totalScore = state.score;
+  const totalMax = state.maxScore || 1;
+  const pct = Math.min(100, Math.round((totalScore / totalMax) * 100));
+
+  let level, title, traits, evalText;
+  if (pct < 20) {
+    level = 'Lv.1 路人'; title = '你基本上还处于"足球是什么"的阶段。';
+    traits = '但至少你已经进了群，迈出了第一步。';
+    evalText = '"这人谁？"\n"好像是被拉进来的"\n"没事，慢慢学"';
+  } else if (pct < 40) {
+    level = 'Lv.2 跟风观众'; title = '你已经知道世界杯是个比赛了。';
+    traits = '就是经常在群里说错话。';
+    evalText = '"这个发言有点东西（指奇怪的东西）"\n"要不你先潜水看看？"';
+  } else if (pct < 60) {
+    level = 'Lv.3 伪球迷'; title = '基础知识已经掌握。';
+    traits = '但细节容易露馅。需要继续潜伏学习。';
+    evalText = '"还行，不太像新手"\n"偶尔会问傻问题，但整体还行"';
+  } else if (pct < 80) {
+    level = 'Lv.5 合格观众'; title = '能独立看懂比赛，能在群里自如发言。';
+    traits = '一般场合不会暴露。';
+    evalText = '"这个兄弟是懂球的"\n"发言靠谱"\n"可以一起看球"';
+  } else if (pct < 95) {
+    level = 'Lv.7 懂哥预备役'; title = '不仅能看懂，还能给别人讲。';
+    traits = '群聊存在感强，偶尔输出知识。距离懂哥只差一个博士学位。';
+    evalText = '"你是不是偷偷研究了"\n"越来越懂了"\n"再过两年你就是新懂哥"';
+  } else {
+    level = 'Lv.10 世界杯传教士'; title = '你已经不是在看球。你是在传播世界杯的信仰。';
+    traits = '你拉的每个人都会变成球迷。';
+    evalText = '"你是不是国际足联的人"\n"这个群靠你维持活跃度"\n"卧底？你是来当群主的吧"';
+  }
+
+  // 彩蛋检测
+  const allChoices = state.choices;
+  const allWrong = allChoices.length > 0 && allChoices.every(c => getChoiceScore(c.chapter, c.choice) <= 0);
+  const allRight = allChoices.length > 0 && allChoices.every(c => {
+    const max = getChoiceMax(c.chapter);
+    return getChoiceScore(c.chapter, c.choice) >= max;
+  });
+
+  let easterEgg = '';
+  if (allWrong) {
+    easterEgg = `
+      <div style="margin-top:16px;padding:12px;background:#333;border-radius:8px;text-align:left;font-size:12px;line-height:1.8;">
+      <strong>🥚 彩蛋：全选错误答案</strong><br>
+      <span style="color:#2ecc71">踢球是不可能踢球的：</span>兄弟，你是我见过最诚实的新手。每一个坑都踩了，但不知道为什么，我很尊重你。<br>
+      <span style="color:#e67e22">皇马名宿梅西：</span>终于有人比我还不懂了，欢迎加入群梅西联盟。<br>
+      <span style="color:#95a5a6">诸神黄昏养老院球迷：</span>没关系，每个人都是这样过来的。
+      </div>`;
+  } else if (allRight) {
+    easterEgg = `
+      <div style="margin-top:16px;padding:12px;background:#333;border-radius:8px;text-align:left;font-size:12px;line-height:1.8;">
+      <strong>🥚 彩蛋：全程零失误</strong><br>
+      <span style="color:#4a6fa5">战术级理解：</span>等等，你是不是其实很懂球<br>
+      <span style="color:#2ecc71">踢球是不可能踢球的：</span>卧底？你这是来当教授的！群主，这有个冒充新人的<br>
+      <span style="color:#1abc9c">这战术我看不懂：</span>我怀疑你是退役球员。哪个队的，老实交代
+      </div>`;
+  } else if (state.speakingCount === 0) {
+    easterEgg = `
+      <div style="margin-top:16px;padding:12px;background:#333;border-radius:8px;text-align:left;font-size:12px;line-height:1.8;">
+      <strong>🥚 隐藏成就：潜行之王</strong><br>
+      <span style="color:#2ecc71">踢球是不可能踢球的：</span>这个新人从头到尾没说过一句话，真正的隐形人<br>
+      <span style="color:#4a6fa5">战术级理解：</span>潜伏的最高境界：不说话。但我不确定你学到了什么……
+      </div>`;
+  }
+
+  const skillsList = [];
+  if (state.chapterComplete.ch1) skillsList.push('国家队与俱乐部');
+  if (state.chapterComplete.ch2) skillsList.push('世界杯的重要性');
+  if (state.chapterComplete.ch3) skillsList.push('观赛视角');
+  if (state.offsideLearned) skillsList.push('越位');
+  skillsList.push('群聊生存术');
+
+  const resultHTML = `
+    <h2>⚽ 观赛群卧底计划</h2>
+    <p style="color:#aaa;font-size:13px;">结业报告</p>
+    <div style="margin:12px 0;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:4px;">
+        <span>懂球浓度</span><span>${pct}%</span>
+      </div>
+      <div class="meter"><div class="meter-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="level-badge">${level}</div>
+    <p style="font-size:14px;margin:8px 0;color:#ddd;">${title}</p>
+    <div class="traits">${traits}</div>
+    <div class="skills" style="text-align:left;margin:12px 0;">
+      <strong style="color:#f0c040;">已获得技能：</strong><br>
+      ${skillsList.map(s => `✓ ${s}`).join('<br>')}
+    </div>
+    <div style="margin:8px 0;">
+      <span style="font-size:13px;color:#f0c040;">卧底成功率：${pct}%</span>
+    </div>
+    <div class="eval">群友评价：<br>${evalText.replace(/\n/g, '<br>')}</div>
+    ${easterEgg}
+    <div class="actions">
+      <button class="btn-share" onclick="showShareCard(${pct}, '${level}')">📤 查看分享卡</button>
+      <button class="btn-retry" onclick="location.reload()">🔄 再来一次</button>
+    </div>
+  `;
+
+  document.getElementById('result-content').innerHTML = resultHTML;
+  document.getElementById('result-page').classList.add('active');
+}
+
+function showShareCard(pct, level) {
+  document.getElementById('share-inner').innerHTML = `
+    <h4>📤 分享卡</h4>
+    <div class="mini-chat">
+      <div style="text-align:center;color:#888;font-size:11px;margin-bottom:6px;">⚽ 世界杯观赛群（499）</div>
+      <div class="mini-sys">
+        🏅 卧底任务完成<br>
+        懂球浓度 ${'█'.repeat(Math.round(pct/10))}${'░'.repeat(10-Math.round(pct/10))} ${pct}%<br>
+        身份：${level}<br>
+        卧底成功率：${pct}%<br>
+        "差点被当成真球迷"
+      </div>
+      <div style="text-align:center;color:#888;font-size:10px;margin-top:8px;">你也来测测？扫码开启卧底计划 →</div>
+    </div>
+    <button class="close-btn" onclick="document.getElementById('share-card').classList.remove('active')">关闭</button>
+  `;
+  document.getElementById('share-card').classList.add('active');
+}
+
+// ==================== 主流程 ====================
+async function main() {
+  clearChat();
+
+  // 序章
+  const accepted = await runPrologue();
+  if (!accepted) return;
+
+  await new Promise(r => setTimeout(r, 600));
+
+  // 第一章
+  await runChapter1();
+  state.chapterComplete.ch1 = true;
+  await new Promise(r => setTimeout(r, 800));
+
+  // 第二章
+  await runChapter2();
+  state.chapterComplete.ch2 = true;
+  await new Promise(r => setTimeout(r, 800));
+
+  // 第三章
+  await runChapter3();
+  state.chapterComplete.ch3 = true;
+  await new Promise(r => setTimeout(r, 800));
+
+  // 第四章
+  await runChapter4();
+  await new Promise(r => setTimeout(r, 800));
+
+  // 第六章（剧本第五章不存在，直接第六章）
+  await runChapter6();
+  await new Promise(r => setTimeout(r, 1000));
+
+  // 终章
+  await runFinalChapter();
+  await new Promise(r => setTimeout(r, 800));
+
+  // 结果
+  addSystemCard('━━━━━━━━━━━━━━━━━━\n  测试结束\n\n  正在计算你的\n  卧底成功率……\n━━━━━━━━━━━━━━━━━━');
+  await new Promise(r => setTimeout(r, 1500));
+  showResult();
+}
+
+// 启动
+main().catch(console.error);
+</script>
+</body>
+</html>
